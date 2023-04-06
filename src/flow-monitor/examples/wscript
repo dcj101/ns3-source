@@ -1,0 +1,9 @@
+## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    bld.register_ns3_script('wifi-olsr-flowmon.py', ['flow-monitor', 'internet', 'wifi', 'olsr', 'applications', 'mobility'])
+
+    obj = bld.create_ns3_program('testFlow',
+                                 ['network', 'internet', 'netanim', 'point-to-point', 'mobility', 'applications',
+                                  'flow-monitor','aodv','olsr','dsdv','dsr','applications','wifi'])
+    obj.source = 'testFlow.cc'

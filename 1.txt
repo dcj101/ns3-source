@@ -1,0 +1,30 @@
+MyGetObservation: [1, 0, 10066557, 2, 44880, 50142, 340, 2, 89760, 232221, 80000, 1, 0, 2, 0]
+OpenGymInterface:GetReward(0x55fbba627260)
+MyGetReward: 2
+OpenGymInterface:IsGameOver(0x55fbba627260)
+MyGetGameOver: 0
+OpenGymInterface:GetExtraInfo(0x55fbba627260)
+MyGetExtraInfo: IncreaseWindow
+OpenGymInterface:ExecuteActions(0x55fbba627260)
+MyExecuteActions: [44880, 50144]
+ns3::TcpGymEnv:TxPktTrace(0x55fbba6460f0)
+ns3::TcpGymEnv:TxPktTrace(0x55fbba6460f0)
+ns3::TcpRlBase:CwndEvent(0x55fbba6196b0)
+ns3::TcpRlBase:CreateGymEnv(0x55fbba6196b0)
+ns3::TcpRlBase:CwndEvent(0x55fbba6196b0)
+ns3::TcpRlBase:CreateGymEnv(0x55fbba6196b0)
+ns3::TcpGymEnv:RxPktTrace(0x55fbba6460f0)
+ns3::TcpRlBase:PktsAcked(0x55fbba622e20)
+ns3::TcpGymEnv:PktsAcked(0x55fbba6460f0)
++1.00697e+10ns Node: 2 PktsAcked, SegmentsAcked: 2 Rtt: +2.32319e+08ns
+ns3::TcpRlBase:IncreaseWindow(0x55fbba622e20, 0x55fbba6a13a0, 2)
+ns3::TcpGymEnv:IncreaseWindow(0x55fbba6460f0)
++1.00697e+10ns Node: 2 IncreaseWindow, SegmentsAcked: 2
+OpenGymInterface:Notify(0x55fbba627260)
+OpenGymInterface:SetGetGameOverCb(0x55fbba627260)
+OpenGymInterface:SetGetObservationCb(0x55fbba627260)
+OpenGymInterface:SetGetRewardCb(0x55fbba627260)
+OpenGymInterface:SetGetExtraInfoCb(0x55fbba627260)
+OpenGymInterface:SetExecuteActionsCb(0x55fbba627260)
+OpenGymInterface:NotifyCurrentState(0x55fbba627260)
+OpenGymInterface:GetObservation(0x55fbba627260)

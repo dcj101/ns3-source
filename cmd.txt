@@ -1,0 +1,2 @@
+sudo ./waf configure --build-profile=debug --enable-example --enable-tests --with-pybindgen=/home/dcj/ns3/ns-allinone-3.34/pybindgen-0.22.0  --enable-sudo
+

@@ -1,0 +1,23 @@
+## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    if not bld.env['ENABLE_EXAMPLES']:
+        return;
+
+    obj = bld.create_ns3_program('test-address',['wsn','core'])
+    obj.source = 'test-address.cc'
+
+    obj = bld.create_ns3_program('test-network',['wsn','core'])
+    obj.source = 'test-network.cc'
+
+    obj = bld.create_ns3_program('test-application-copy',['wsn','core'])
+    obj.source = 'test-application-copy.cc'
+
+    obj = bld.create_ns3_program('test-addressEUI64',['wsn','core'])
+    obj.source = 'test-addressEUI64.cc'
+
+    obj = bld.create_ns3_program('test-network-myself',['wsn','core'])
+    obj.source = 'test-network-myself.cc'
+
+    obj = bld.create_ns3_program('test-Simulator',['wsn','core'])
+    obj.source = 'test-Simulator.cc'
