@@ -93,6 +93,7 @@ public:
     uint16_t GetMinAddress() const;
     
     void Reset();
+    
 
 private:
 

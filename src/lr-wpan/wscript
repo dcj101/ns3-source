@@ -1,7 +1,7 @@
 ## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
 
 def build(bld):
-    obj = bld.create_ns3_module('lr-wpan', ['core', 'network', 'mobility', 'spectrum', 'propagation'])
+    obj = bld.create_ns3_module('lr-wpan', ['core', 'network', 'mobility', 'spectrum', 'propagation','flow-monitor'])
     obj.source = [
         'model/lr-wpan-error-model.cc',
         'model/lr-wpan-interference-helper.cc',
@@ -16,6 +16,10 @@ def build(bld):
         'model/lr-wpan-spectrum-value-helper.cc',
         'model/lr-wpan-spectrum-signal-parameters.cc',
         'model/lr-wpan-lqi-tag.cc',
+        'model/lr-wpan-flow-probe.cc',
+        'model/lr-wpan-flow-classifier.cc',
+        'model/lr-wpan-flow-probe-tag.cc',
+        'model/lr-wpan-flow-helper.cc',
         'helper/lr-wpan-helper.cc',
         ]
 
@@ -55,6 +59,10 @@ def build(bld):
         'model/lr-wpan-spectrum-value-helper.h',
         'model/lr-wpan-spectrum-signal-parameters.h',
         'model/lr-wpan-lqi-tag.h',
+        'model/lr-wpan-flow-probe.h',
+        'model/lr-wpan-flow-classifier.h',
+        'model/lr-wpan-flow-probe-tag.h',
+        'model/lr-wpan-flow-helper.h',
         'helper/lr-wpan-helper.h',
         ]
 

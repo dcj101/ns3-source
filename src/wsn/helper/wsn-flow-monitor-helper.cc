@@ -68,7 +68,6 @@ WsnFlowMonitorHelper::Install (Ptr<Node> node)
   Ptr<WsnNwkProtocol> wsnNwkProtocol = node->GetObject<WsnNwkProtocol> ();
   if (wsnNwkProtocol)
     {
-      std::cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
       Ptr<WsnFlowProbe> probe = Create<WsnFlowProbe> (monitor,
                                                         DynamicCast<WsnFlowClassifier> (classifier),
                                                         node);
@@ -82,7 +81,6 @@ WsnFlowMonitorHelper::Install (NodeContainer nodes)
 {
   for (NodeContainer::Iterator i = nodes.Begin (); i != nodes.End (); ++i)
     {
-      std::cout << "@@@@@@@@@@@@@@\n";
       Ptr<Node> node = *i;
       if (node->GetObject<WsnNwkProtocol> ())
         {
@@ -95,7 +93,6 @@ WsnFlowMonitorHelper::Install (NodeContainer nodes)
 Ptr<FlowMonitor>
 WsnFlowMonitorHelper::InstallAll ()
 {
-      std::cout << "@@@@@@@@@@@@@@@@@@\n";
   for (NodeList::Iterator i = NodeList::Begin (); i != NodeList::End (); ++i)
     {
       Ptr<Node> node = *i;

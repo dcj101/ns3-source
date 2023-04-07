@@ -253,9 +253,6 @@ LrWpanCsmaCa::Start ()
   m_NB = 0;
   if (IsSlottedCsmaCa ())
     {
-      NS_LOG_FUNCTION(this << " ------------------------------------------------ ");
-      NS_LOG_FUNCTION(this << " ------------------------------------------------ ");
-      NS_LOG_FUNCTION(this << " ------------------------------------------------ ");
       // TODO: Check if the current PHY is using the Japanese band 950 Mhz:
       //       (IEEE_802_15_4_950MHZ_BPSK and IEEE_802_15_4_950MHZ_2GFSK)
       //       if in use, m_CW = 1.
@@ -263,9 +260,9 @@ LrWpanCsmaCa::Start ()
       //       To know the current used PHY, making the method for GetPhy()->GetMyPhyOption()
       //       public is necessary. Alternatively, the current PHY used
       //       can be known using phyCurrentPage variable.
-// 空闲检测次数为2
+      // 空闲检测次数为2
       m_CW = 2;
-    // 是否开启电池优化
+      // 是否开启电池优化
       if (m_macBattLifeExt)
         {
           m_BE = std::min (static_cast<uint8_t> (2), m_macMinBE);
@@ -287,10 +284,17 @@ LrWpanCsmaCa::Start ()
     }
   else
     {
-      NS_LOG_FUNCTION(this << " ------------------------------------------------ ");
       //否则就现在启动退避时间计算函数
+      m_coorDest = m_mac->isCoordDest ();
       m_BE = m_macMinBE;
-      m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RandomBackoffDelay, this);
+      if(0 && m_coorDest)
+      {
+        m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
+      }
+      else
+      {
+        m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RandomBackoffDelay, this);
+      }
     }
 }
 
@@ -310,7 +314,7 @@ void
 LrWpanCsmaCa::RandomBackoffDelay ()
 {
   NS_LOG_FUNCTION (this);
-  // 设置随机上限
+  // 设置随机上限 
   uint64_t upperBound = (uint64_t) pow (2, m_BE) - 1;
   Time randomBackoff;
   uint64_t symbolRate;
@@ -334,6 +338,7 @@ LrWpanCsmaCa::RandomBackoffDelay ()
     {
       NS_LOG_DEBUG ("Unslotted CSMA-CA: requesting CCA after backoff of " << m_randomBackoffPeriodsLeft <<
                     " periods (" << randomBackoff.As (Time::S) << ")");
+                    //你随机出来一个退避时间，这个时间后继续CCA检查
       m_requestCcaEvent = Simulator::Schedule (randomBackoff, &LrWpanCsmaCa::RequestCCA, this);
     }
   else
@@ -352,7 +357,7 @@ LrWpanCsmaCa::RandomBackoffDelay ()
       NS_LOG_DEBUG ("Backoff periods left in CAP: " << ((timeLeftInCap.GetSeconds () *  symbolRate) / m_aUnitBackoffPeriod) << " ("
                                                     << (timeLeftInCap.GetSeconds () *  symbolRate) << " symbols or "
                                                     << timeLeftInCap.As (Time::S) << ")");
-    // 如果退避的时间超过了竞争的剩余时间
+      // 如果退避的时间超过了竞争的剩余时间
 
       if (randomBackoff > timeLeftInCap)
         {
@@ -371,6 +376,56 @@ LrWpanCsmaCa::RandomBackoffDelay ()
     }
 }
 
+void 
+LrWpanCsmaCa::RlBackoffDelay()
+{
+  if(m_backOffRl.IsNull())
+  {
+    NS_LOG_ERROR("zero point of m_backOffRl()"); 
+    RandomBackoffDelay ();
+    return;
+  }
+  
+  NS_LOG_FUNCTION (this);
+  //获取发送速率
+  uint64_t symbolRate = (uint64_t) m_mac->GetPhy ()->GetDataOrSymbolRate (false);
+
+  if (m_randomBackoffPeriodsLeft == 0 || IsUnSlottedCsmaCa ())
+    {
+
+      m_randomBackoffPeriodsLeft = (uint64_t)m_backOffRl();
+    }
+  Time randomBackoff = Seconds ((double) (m_randomBackoffPeriodsLeft * GetUnitBackoffPeriod ()) / symbolRate);
+  if (IsUnSlottedCsmaCa ())
+    {
+      NS_LOG_DEBUG ("Unslotted CSMA-CA: requesting CCA after backoff of " << m_randomBackoffPeriodsLeft <<
+                    " periods (" << randomBackoff.As (Time::S) << ")");
+      m_requestCcaEvent = Simulator::Schedule (randomBackoff, &LrWpanCsmaCa::RequestCCA, this);
+    }
+  else
+    {
+      Time timeLeftInCap = GetTimeLeftInCap ();
+
+      NS_LOG_DEBUG ("Slotted CSMA-CA: proceeding after random backoff of " << m_randomBackoffPeriodsLeft <<
+                    " periods ("  << (randomBackoff.GetSeconds () * symbolRate) << " symbols or " << randomBackoff.As (Time::S) << ")");
+
+      NS_LOG_DEBUG ("Backoff periods left in CAP: " << ((timeLeftInCap.GetSeconds () *  symbolRate) / m_aUnitBackoffPeriod) << " ("
+                                                    << (timeLeftInCap.GetSeconds () *  symbolRate) << " symbols or "
+                                                    << timeLeftInCap.As (Time::S) << ")");
+      if (randomBackoff > timeLeftInCap)
+        {
+          uint64_t usedBackoffs = (double)(timeLeftInCap.GetSeconds () *  symbolRate) / m_aUnitBackoffPeriod;
+          m_randomBackoffPeriodsLeft -= usedBackoffs;
+          NS_LOG_DEBUG ("No time in CAP to complete backoff delay, deferring to the next CAP");
+          m_endCapEvent = Simulator::Schedule (timeLeftInCap, &LrWpanCsmaCa::DeferCsmaTimeout, this);
+        }
+      else
+        {
+          m_canProceedEvent = Simulator::Schedule (randomBackoff, &LrWpanCsmaCa::CanProceed, this);
+        }
+
+    }
+}
 
 Time
 LrWpanCsmaCa::GetTimeLeftInCap ()
@@ -548,6 +603,7 @@ LrWpanCsmaCa::PlmeCcaConfirm (LrWpanPhyEnumeration status)
         }
       else
         {
+          // 物理信道不空闲直接进行退避
           if (IsSlottedCsmaCa ())
             {
               m_CW = 2;
@@ -568,7 +624,14 @@ LrWpanCsmaCa::PlmeCcaConfirm (LrWpanPhyEnumeration status)
           else
             {
               NS_LOG_DEBUG ("Perform another backoff; m_NB = " << static_cast<uint16_t> (m_NB));
-              m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RandomBackoffDelay, this); //Perform another backoff (step 2)
+              if(m_coorDest)
+              {
+                m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
+              }
+              else
+              {
+                m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RandomBackoffDelay, this); //Perform another backoff (step 2)
+              }   
             }
         }
     }
@@ -588,6 +651,13 @@ LrWpanCsmaCa::SetLrWpanMacStateCallback (LrWpanMacStateCallback c)
 {
   NS_LOG_FUNCTION (this);
   m_lrWpanMacStateCallback = c;
+}
+
+void 
+LrWpanCsmaCa::SetLrWpanNwkBackOffRl(LrWpanBackOffRlCallback rlCb)
+{
+  NS_LOG_FUNCTION (this);
+  m_backOffRl = rlCb;
 }
 
 void

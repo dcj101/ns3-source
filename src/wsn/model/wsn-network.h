@@ -11,7 +11,6 @@
 #include "ns3/ptr.h"
 #include "ns3/mac48-address.h"
 
-#include "wsn-flow-probe-tag.h"
 #include "wsn-address-allocator.h"
 #include "wsn-neighbor-table.h"
 #include "wsn-network-header.h"
@@ -44,7 +43,7 @@ class WsnNwkProtocol : public Object
     static TypeId GetTypeId (void);
     
     void Send(NwkShortAddress sourceaddr,NwkShortAddress dstAddr, 
-                Ptr<Packet> packet, NwkHeader::FrameType ftype,bool isForward);
+                Ptr<Packet> packet, NwkHeader::FrameType ftype);
 
     void BuildRtable(std::vector<StaticRoute> &rtable);
 
@@ -88,7 +87,7 @@ class WsnNwkProtocol : public Object
 
     void StartConfirm (MlmeStartConfirmParams params);
 
-
+    uint64_t RlCallback();
 
     protected:
     
@@ -102,9 +101,6 @@ class WsnNwkProtocol : public Object
     private:
 
     friend class WsnNwkProtocolHelper; 
-
-    void CreateAndAggregateObjectFromTypeId(Ptr<Node> node, const std::string typeId);
-
 
     Ptr<LrWpanNetDevice> m_netDevice;
 
@@ -137,13 +133,6 @@ class WsnNwkProtocol : public Object
     MlmeBeaconNotifyIndicationCallback m_MlmeBeaconNotifyIndicationCallback;
     
     McpsDataIndicationCallback m_McpsDataIndicationCallback;
-
-    // track
-    TracedCallback<const NwkHeader&, Ptr<const Packet> > m_sendTrace;
-    /// Trace of unicast forwarded packets
-    TracedCallback<const NwkHeader &, Ptr<const Packet> > m_unicastForwardTrace;
-    /// Trace of locally delivered packets
-    TracedCallback<const NwkHeader &, Ptr<const Packet> > m_localDeliverTrace;
 };  
 
 class WsnNwkProtocolHelper

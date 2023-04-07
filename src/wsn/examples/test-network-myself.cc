@@ -9,6 +9,7 @@
 #include <ns3/packet.h>
 #include <ns3/wsn-module.h>
 #include <ns3/wsn-flow-monitor-helper.h>
+#include <ns3/lr-wpan-flow-helper.h>
 #include <iostream>
 
 
@@ -18,27 +19,21 @@ NS_LOG_COMPONENT_DEFINE ("testexample");
 
 void Test(Ptr<WsnNwkProtocol> from, Ptr<WsnNwkProtocol> to)
 {
-  std::cout << "---------------------------------------------\n";
-  std::cout << "---------------------------------------------\n";
-  std::cout << "---------------------------------------------\n";
-  std::cout << "---------------------------------------------\n";
-  std::cout << "---------------------------------------------\n";
-  std::cout << "---------------------------------------------\n";
     Simulator::ScheduleWithContext(1,Seconds(0.0),&WsnNwkProtocol::Send,
                       from,from->GetNwkShortAddress(),to->GetNwkShortAddress(),
-                      Create<Packet>(17),
-                      NwkHeader::NWK_FRAME_DATA,0);
-    Simulator::ScheduleWithContext(2,Seconds((double)0.11),&WsnNwkProtocol::Send,
-                      to,to->GetNwkShortAddress(),from->GetNwkShortAddress(),
-                      Create<Packet>(31),
-                      NwkHeader::NWK_FRAME_DATA,0);
+                      Create<Packet>(11),
+                      NwkHeader::NWK_FRAME_DATA);
+    // Simulator::ScheduleWithContext(2,Seconds(1.0),&WsnNwkProtocol::Send,
+    //                   to,to->GetNwkShortAddress(),from->GetNwkShortAddress(),
+    //                   Create<Packet>(31),
+    //                   NwkHeader::NWK_FRAME_DATA,0);
 }
 
 int main()
 {
   // LogComponentEnable ("testexample", LogLevel (LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_INFO));
-  LogComponentEnableAll (LOG_PREFIX_TIME);
-  LogComponentEnableAll (LOG_PREFIX_FUNC);
+  // LogComponentEnableAll (LOG_PREFIX_TIME);
+  // LogComponentEnableAll (LOG_PREFIX_FUNC);
   // LogComponentEnable ("LrWpanMac", LOG_LEVEL_ALL);
   // LogComponentEnable ("WsnFlowProbe", LOG_LEVEL_ALL);
   // LogComponentEnable ("LrWpanPhy", LOG_LEVEL_ALL);
@@ -48,6 +43,7 @@ int main()
   // LogComponentEnable ("NwkHeader", LOG_LEVEL_ALL);
   // LogComponentEnable ("WsnAddressAllocator", LOG_LEVEL_ALL);
   // LogComponentEnable ("Node", LOG_LEVEL_ALL);
+  LogComponentEnable ("LrWpanFlowProbe", LOG_LEVEL_ALL);
 
   // 设置入网分配器的分配规则
   WsnAddressAllocator::Get ()->SetWsnAddressAllocator(5,3,3);
@@ -175,16 +171,18 @@ int main()
   dev4->GetPhy ()->SetMobility (sender4Mobility);
 
 
-
-  WsnFlowMonitorHelper flowmon;
-  Ptr<FlowMonitor> monitor = flowmon.InstallAll();
+  Ptr<FlowMonitor> monitor = LrWpanFlowMonitorHelper::Get ()->Install(dev0);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev1);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev2);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev3);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev4);
 
   Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::JoinRequest,
                       nwk0,nwk1);
   // nwk0->JoinRequest(NODE_TYPE::COOR,NULL);
   Simulator::Schedule(Seconds(5.0),&WsnNwkProtocol::JoinRequest,
                       nwk3,nwk0);
-  // nwk1->JoinRequest(NODE_TYPE::EDGE,nwk1);
+  // // nwk1->JoinRequest(NODE_TYPE::EDGE,nwk1);
 
   Simulator::Schedule(Seconds(10.0),&WsnNwkProtocol::JoinRequest,
                       nwk1,nwk0);
@@ -195,19 +193,22 @@ int main()
   Simulator::Schedule(Seconds(20.0),&WsnNwkProtocol::JoinRequest,
                       nwk4,nwk3);        
 
+  double sendtime = 22;
 
-
-  for(int i = 0; i < 500; ++ i)
-  {
-    double delay = 0.0001;
-    Simulator::Schedule(Seconds(22+i*delay),&Test,nwk2,nwk1);
-    Simulator::Schedule(Seconds(22+(i+1)*delay),&Test,nwk4,nwk1);
-    Simulator::Schedule(Seconds(22+(i+2)*delay),&Test,nwk2,nwk4);    
+  for(int i = 0; i < 500; i+=6)
+  { 
+    double delay = 0.001;
+    Simulator::Schedule(Seconds(sendtime+(i+0)*delay),&Test,nwk2,nwk1);
+    Simulator::Schedule(Seconds(sendtime+(i+1)*delay),&Test,nwk1,nwk2);
+    Simulator::Schedule(Seconds(sendtime+(i+2)*delay),&Test,nwk4,nwk1);
+    Simulator::Schedule(Seconds(sendtime+(i+3)*delay),&Test,nwk1,nwk4);
+    Simulator::Schedule(Seconds(sendtime+(i+4)*delay),&Test,nwk2,nwk4);    
+    Simulator::Schedule(Seconds(sendtime+(i+5)*delay),&Test,nwk4,nwk2);    
   }
 
 
 
-  bool TraceMetric = true;
+  bool TraceMetric = 1;
 
   Simulator::Stop(Seconds(2000));
   Simulator::Run ();
@@ -222,20 +223,21 @@ int main()
 		Time Jitter;
 		Time Delay;
 
-		Ptr<WsnFlowClassifier> classifier = DynamicCast<WsnFlowClassifier> (flowmon.GetClassifier ());
-		std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats ();
+		Ptr<LrWpanFlowClassifier> classifier = DynamicCast<LrWpanFlowClassifier> (LrWpanFlowMonitorHelper::Get() ->GetClassifier ());
+
+    std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats ();
 
 		for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator iter = stats.begin (); iter != stats.end (); ++iter)
 		{
-        WsnFlowClassifier::FourTuple t = classifier->FindFlow (iter->first);
+        LrWpanFlowClassifier::TwoTuple t = classifier->FindFlow (iter->first);
 
         NS_LOG_UNCOND("----Flow ID:" <<iter->first);
         NS_LOG_UNCOND("Src Addr" <<t.sourceAddress << "Dst Addr "<< t.destinationAddress);
         NS_LOG_UNCOND("Sent Packets=" <<iter->second.txPackets);
         NS_LOG_UNCOND("Received Packets =" <<iter->second.rxPackets);
         NS_LOG_UNCOND("Lost Packets =" <<iter->second.txPackets-iter->second.rxPackets);
-        NS_LOG_UNCOND("Packet delivery ratio =" <<iter->second.rxPackets*100/iter->second.txPackets << "%");
-        NS_LOG_UNCOND("Packet loss ratio =" << (iter->second.txPackets-iter->second.rxPackets)*100/iter->second.txPackets << "%");
+        NS_LOG_UNCOND("Packet delivery ratio =" <<(double)iter->second.rxPackets*100/iter->second.txPackets << "%");
+        NS_LOG_UNCOND("Packet loss ratio =" << (double)(iter->second.txPackets-iter->second.rxPackets)*100/iter->second.txPackets << "%");
         NS_LOG_UNCOND("Delay =" <<iter->second.delaySum);
         NS_LOG_UNCOND("Jitter =" <<iter->second.jitterSum);
         NS_LOG_UNCOND("Throughput =" <<iter->second.rxBytes * 8.0/(iter->second.timeLastRxPacket.GetSeconds()-iter->second.timeFirstTxPacket.GetSeconds())/1024<<"Kbps\n\n\n");
@@ -256,13 +258,13 @@ int main()
 		NS_LOG_UNCOND("Total sent packets  =" << SentPackets);
 		NS_LOG_UNCOND("Total Received Packets =" << ReceivedPackets);
 		NS_LOG_UNCOND("Total Lost Packets =" << LostPackets);
-		NS_LOG_UNCOND("Packet Loss ratio =" << ((LostPackets*100)/SentPackets)<< "%");
-		NS_LOG_UNCOND("Packet delivery ratio =" << ((ReceivedPackets*100)/SentPackets)<< "%");
+		NS_LOG_UNCOND("Packet Loss ratio =" << ((double)(LostPackets*100)/SentPackets)<< "%");
+		NS_LOG_UNCOND("Packet delivery ratio =" << ((double)(ReceivedPackets*100)/SentPackets)<< "%");
 		NS_LOG_UNCOND("Average Throughput =" << AvgThroughput<< "Kbps");
 		NS_LOG_UNCOND("End to End Delay =" << Delay);
-		NS_LOG_UNCOND("End to End Jitter delay =" << Jitter);
+		NS_LOG_UNCOND("End to End Jitter delay =" << Jitter); 
 		NS_LOG_UNCOND("Total Flod id " << j);
-		monitor->SerializeToXmlFile("manet-routing.xml", true, true);
+		monitor->SerializeToXmlFile("manet-routing.xml", true, true );
 	}
 
   Simulator::Destroy ();

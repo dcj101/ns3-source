@@ -1,6 +1,6 @@
 
-#ifndef WSN_FLOW_MONITOR_HELPER_H
-#define WSN_FLOW_MONITOR_HELPER_H
+#ifndef LrWpan_FLOW_MONITOR_HELPER_H
+#define LrWpan_FLOW_MONITOR_HELPER_H
 
 #include "ns3/node-container.h"
 #include "ns3/object-factory.h"
@@ -8,26 +8,23 @@
 #include "ns3/flow-classifier.h"
 #include "ns3/singleton.h"
 #include <string>
+#include "lr-wpan-net-device.h"
 
 namespace ns3 {
 
 class AttributeValue;
-class WsnFlowClassifier;
+class LrWpanFlowClassifier;
 
-class WsnFlowMonitorHelper : public Singleton<WsnFlowMonitorHelper>
+class LrWpanFlowMonitorHelper : public Singleton<LrWpanFlowMonitorHelper>
 {
 public:
 
-  WsnFlowMonitorHelper ();
-  ~WsnFlowMonitorHelper ();
+  LrWpanFlowMonitorHelper ();
+  ~LrWpanFlowMonitorHelper ();
 
   void SetMonitorAttribute (std::string n1, const AttributeValue &v1);
 
-  Ptr<FlowMonitor> Install (NodeContainer nodes);
-
-  Ptr<FlowMonitor> Install (Ptr<Node> node);
-
-  Ptr<FlowMonitor> InstallAll ();
+  Ptr<FlowMonitor> Install (Ptr<LrWpanNetDevice> device);
 
   Ptr<FlowMonitor> GetMonitor ();
 
@@ -40,15 +37,15 @@ public:
   void SerializeToXmlFile (std::string fileName, bool enableHistograms, bool enableProbes);
 
 private:
-  friend class Singleton<WsnFlowMonitorHelper>;
+  friend class Singleton<LrWpanFlowMonitorHelper>;
 
-  WsnFlowMonitorHelper (const WsnFlowMonitorHelper&);
+  LrWpanFlowMonitorHelper (const LrWpanFlowMonitorHelper&);
 
-  WsnFlowMonitorHelper& operator= (const WsnFlowMonitorHelper&);
+  LrWpanFlowMonitorHelper& operator= (const LrWpanFlowMonitorHelper&);
 
   ObjectFactory m_monitorFactory;        //!< Object factory
   Ptr<FlowMonitor> m_flowMonitor;        //!< the FlowMonitor object
-  Ptr<FlowClassifier> m_flowClassifierWsn; //!< the FlowClassifier object for IPv4
+  Ptr<FlowClassifier> m_flowClassifierLrWpan; //!< the FlowClassifier object for IPv4
 };
 
 } // namespace ns3

@@ -147,6 +147,16 @@ LrWpanMac::GetTypeId (void)
                      "Interframe space (IFS) ",
                      MakeTraceSourceAccessor (&LrWpanMac::m_macIfsEndTrace),
                      "ns3::Packet::TracedCallback")
+    .AddTraceSource ("MacSendTrace",
+                    "A newly-generated packet by this node is "
+                    "about to be queued for transmission",
+                    MakeTraceSourceAccessor (&LrWpanMac::m_sendTrace),
+                    "ns3::LrWpanMac::SentTracedCallback")
+    .AddTraceSource ("MacLocalDeliverTrace",
+                    "An lr-wpan packet was received by/for this node, "
+                    "and it is being forward up the stack",
+                    MakeTraceSourceAccessor (&LrWpanMac::m_localDeliverTrace),
+                    "ns3::LrWpanMac::SentTracedCallback")                 
   ;
   return tid;
 }
@@ -295,6 +305,7 @@ LrWpanMac::GetExtendedAddress () const
 void
 LrWpanMac::McpsDataRequest (McpsDataRequestParams params, Ptr<Packet> p)
 {
+
   NS_LOG_FUNCTION (this << p << "dcj come in ----------------------");
 
   McpsDataConfirmParams confirmParams;
@@ -920,6 +931,12 @@ LrWpanMac::CheckQueue ()
             {
               TxQueueElement *txQElement = m_txQueue.front ();
               m_txPkt = txQElement->txQPkt;
+              LrWpanMacHeader macHdr;
+              
+              m_txPkt->RemoveHeader(macHdr);
+              m_sendTrace(macHdr,m_txPkt);
+              m_txPkt->AddHeader(macHdr);
+
               m_setMacState = Simulator::ScheduleNow (&LrWpanMac::SetLrWpanMacState, this, MAC_CSMA);
             }
         }
@@ -1072,6 +1089,8 @@ LrWpanMac::PdDataIndication (uint32_t psduLength, Ptr<Packet> p, uint8_t lqi)
     {
       LrWpanMacHeader receivedMacHdr;
       p->RemoveHeader (receivedMacHdr);
+      
+      m_localDeliverTrace(receivedMacHdr,p);
 
       McpsDataIndicationParams params;
       params.m_dsn = receivedMacHdr.GetSeqNum ();

@@ -1,16 +1,16 @@
-#ifndef WSN_FLOW_TAG_H
-#define WSN_FLOW_TAG_H
-#include "wsn-nwk-short-address.h"
+#ifndef LrWpan_FLOW_TAG_H
+#define LrWpan_FLOW_TAG_H
+#include <ns3/mac64-address.h>
 #include "ns3/type-id.h"
 #include "ns3/flow-probe.h"
 #include "ns3/flow-monitor.h"
-#include "wsn-flow-classifier.h"
-#include "wsn-network.h"
+#include "lr-wpan-flow-classifier.h"
+#include "ns3/tag.h"
 
 namespace ns3
 {
 
-class WsnFlowProbeTag : public Tag
+class LrWpanFlowProbeTag : public Tag
 {
 public:
 
@@ -20,9 +20,9 @@ public:
   virtual void Serialize (TagBuffer buf) const;
   virtual void Deserialize (TagBuffer buf);
   virtual void Print (std::ostream &os) const;
-  WsnFlowProbeTag ();
+  LrWpanFlowProbeTag ();
 
-  WsnFlowProbeTag (uint32_t flowId, uint32_t packetId, uint32_t packetSize, NwkShortAddress src, NwkShortAddress dst);
+  LrWpanFlowProbeTag (uint32_t flowId, uint32_t packetId, uint32_t packetSize, Mac64Address src, Mac64Address dst);
 
   void SetFlowId (uint32_t flowId);
 
@@ -36,13 +36,13 @@ public:
 
   uint32_t GetPacketSize (void) const;
 
-  bool IsSrcDstValid (NwkShortAddress src, NwkShortAddress dst) const;
+  bool IsSrcDstValid (Mac64Address src, Mac64Address dst) const;
 private:
   uint32_t m_flowId;      //!< flow identifier
   uint32_t m_packetId;    //!< packet identifier
   uint32_t m_packetSize;  //!< packet size
-  NwkShortAddress m_src;      //!< IP source
-  NwkShortAddress m_dst;      //!< IP destination
+  Mac64Address m_src;      //!< IP source
+  Mac64Address m_dst;      //!< IP destination
 };
 
 }

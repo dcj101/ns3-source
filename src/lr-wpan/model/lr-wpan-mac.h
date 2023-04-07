@@ -35,6 +35,7 @@
 #include <ns3/lr-wpan-fields.h>
 #include <ns3/event-id.h>
 #include <deque>
+#include "lr-wpan-mac-header.h"
 
 
 namespace ns3 {
@@ -1409,6 +1410,12 @@ private:
    * Scheduler event to track the incoming beacons.
    */
   EventId m_trackingEvent;
+
+      // track
+    TracedCallback<const LrWpanMacHeader&, Ptr<const Packet> > m_sendTrace;
+    /// Trace of locally delivered packets
+    TracedCallback<const LrWpanMacHeader&, Ptr<const Packet> > m_localDeliverTrace;
+
 };
 } // namespace ns3
 

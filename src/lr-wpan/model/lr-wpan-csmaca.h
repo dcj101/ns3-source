@@ -38,6 +38,7 @@ class UniformRandomVariable;
  * This method informs the MAC whether the channel is idle or busy.
  */
 typedef Callback<void, LrWpanMacState> LrWpanMacStateCallback;
+typedef Callback<uint64_t> LrWpanBackOffRlCallback;
 /**
  * \ingroup lr-wpan
  *
@@ -180,6 +181,10 @@ public:
    * In step 2 of the CSMA-CA, perform a random backoff in the range of 0 to 2^BE -1
    */
   void RandomBackoffDelay (void);
+  /*
+  *
+  */
+  void RlBackoffDelay(void);
   /**
    * In the slotted CSMA-CA, after random backoff, determine if the remaining
    * CSMA-CA operation can proceed, i.e. can the entire transactions can be
@@ -225,6 +230,10 @@ public:
    * \param macState the mac state callback
    */
   void SetLrWpanMacStateCallback (LrWpanMacStateCallback macState);
+  /*
+  
+  */
+  void SetLrWpanNwkBackOffRl(LrWpanBackOffRlCallback rlCb);
   /**
    * Set the value of the Battery Life Extension
    *
@@ -378,6 +387,7 @@ private:
    */
   bool m_coorDest;
 
+  LrWpanBackOffRlCallback m_backOffRl;
 };
 
 }
