@@ -67,9 +67,10 @@ LrWpanFlowProbe::SendOutgoingLogger (const LrWpanMacHeader &macHeader, Ptr<const
     {
       return;
     }
-
+  m_classifier->getlock();
   if (m_classifier->Classify (macHeader, macPayload, &flowId, &packetId))
     {
+      
       uint32_t size = (macPayload->GetSize () + macHeader.GetSerializedSize ());
       NS_LOG_DEBUG ("ReportFirstTx ("<<this<<", "<<flowId<<", "<<packetId<<", "<<size<<"); "
                                      << macHeader.GetExtSrcAddr () << macHeader.GetExtDstAddr () << *macPayload);
@@ -79,6 +80,7 @@ LrWpanFlowProbe::SendOutgoingLogger (const LrWpanMacHeader &macHeader, Ptr<const
       LrWpanFlowProbeTag fTag (flowId, packetId, size, macHeader.GetExtSrcAddr (), macHeader.GetExtDstAddr ());
       macPayload->AddByteTag (fTag);
     }
+  m_classifier->releaselock();
 }
 
 void
@@ -87,11 +89,14 @@ LrWpanFlowProbe::ForwardUpLogger (const LrWpanMacHeader &macHeader, Ptr<const Pa
   LrWpanFlowProbeTag fTag;
   bool found = macPayload->FindFirstMatchingByteTag (fTag);
   NS_LOG_FUNCTION(this << " found" << found);
+  
   if (found)
     {
+      m_classifier->getlock();
       if (!fTag.IsSrcDstValid (macHeader.GetExtSrcAddr (), macHeader.GetExtDstAddr ()))
         {
           NS_LOG_LOGIC ("Not reporting encapsulated packet");
+          m_classifier->releaselock();
           return;
         }
 
@@ -102,6 +107,7 @@ LrWpanFlowProbe::ForwardUpLogger (const LrWpanMacHeader &macHeader, Ptr<const Pa
       // NS_LOG_DEBUG ("ReportLastRx ("<<this<<", "<<flowId<<", "<<packetId<<", "<<size<<"); "
       //                                << macHeader << *macPayload);
       m_flowMonitor->ReportLastRx (this, flowId, packetId, size);
+      m_classifier->releaselock();
     }
 }
 

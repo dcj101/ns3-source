@@ -4,7 +4,7 @@
 #include "lr-wpan-mac.h"
 #include "lr-wpan-mac-header.h"
 #include "ns3/flow-classifier.h"
-
+#include <mutex>
 
 namespace ns3
 {
@@ -27,11 +27,12 @@ public:
 
     virtual void SerializeToXmlStream (std::ostream &os, uint16_t indent) const;
 
-
+    void getlock(){m_mutex.lock();}
+    void releaselock(){m_mutex.unlock();}
 private:
   std::map<TwoTuple, FlowId> m_flowMap;
   std::map<FlowId, FlowPacketId> m_flowPktIdMap;
-
+  mutable std::mutex m_mutex;
 };
 
 bool operator < (const LrWpanFlowClassifier::TwoTuple &t1, const LrWpanFlowClassifier::TwoTuple &t2);

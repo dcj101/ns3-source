@@ -66,10 +66,8 @@ LrWpanFlowMonitorHelper::Install (Ptr<LrWpanNetDevice> device)
   Ptr<FlowMonitor> monitor = GetMonitor ();
   Ptr<FlowClassifier> classifier = GetClassifier ();
   Ptr<LrWpanMac> lrWpanMac = device->GetMac();
-      std::cout << "@@@@@@@@@@@@@@@@@@@@@@\n";
   if (lrWpanMac)
     {
-      std::cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
       Ptr<LrWpanFlowProbe> probe = Create<LrWpanFlowProbe> (monitor,
                                                         DynamicCast<LrWpanFlowClassifier> (classifier),
                                                         device);

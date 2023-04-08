@@ -195,10 +195,10 @@ int main()
 
   double sendtime = 100;
 
-  for(int i = 0; i < 1500; i+=6)
+  for(int i = 0; i < 2000; i+=6)
   { 
     Ptr<UniformRandomVariable> uniformRandomVariable = CreateObject<UniformRandomVariable> ();;
-    double delay = uniformRandomVariable->GetValue (0, 1);
+    double delay = uniformRandomVariable->GetValue (0, 0.1);
     Simulator::Schedule(Seconds(sendtime+(i+0)*delay),&Test,nwk2,nwk1);
     Simulator::Schedule(Seconds(sendtime+(i+1)*delay),&Test,nwk1,nwk2);
     Simulator::Schedule(Seconds(sendtime+(i+2)*delay),&Test,nwk4,nwk1);
@@ -231,7 +231,7 @@ int main()
 		for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator iter = stats.begin (); iter != stats.end (); ++iter)
 		{
         LrWpanFlowClassifier::TwoTuple t = classifier->FindFlow (iter->first);
-        if(t.sourceAddress != dev1->GetMac()->GetExtendedAddress()) continue;
+        if(t.sourceAddress != dev2->GetMac()->GetExtendedAddress()) continue;
         NS_LOG_UNCOND("----Flow ID:" <<iter->first);
         NS_LOG_UNCOND("Src Addr" <<t.sourceAddress << "Dst Addr "<< t.destinationAddress);
         NS_LOG_UNCOND("Sent Packets=" <<iter->second.txPackets);

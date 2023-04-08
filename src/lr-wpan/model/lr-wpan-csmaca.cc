@@ -248,7 +248,7 @@ LrWpanCsmaCa::GetTimeToNextSlot (void) const
 uint32_t 
 LrWpanCsmaCa::ActionRlBackoff()
 {
-
+  NS_LOG_FUNCTION(this);
   uint32_t SentPackets = 0;
 	uint32_t ReceivedPackets = 0;
 	uint32_t LostPackets = 0;
@@ -272,7 +272,6 @@ LrWpanCsmaCa::ActionRlBackoff()
       LostPackets = LostPackets + (iter->second.txPackets-iter->second.rxPackets);
       AvgThroughput = AvgThroughput + (iter->second.rxBytes * 8.0/(iter->second.timeLastRxPacket.GetSeconds()-iter->second.timeFirstTxPacket.GetSeconds())/1024);
       Delay = Delay + (iter->second.delaySum);
-      Jitter = Jitter + (iter->second.jitterSum);
       j = j + 1;
   }
 
@@ -285,8 +284,7 @@ LrWpanCsmaCa::ActionRlBackoff()
   NS_LOG_UNCOND("Packet delivery ratio =" << ((double)(ReceivedPackets*100)/SentPackets)<< "%");
   NS_LOG_UNCOND("Average Throughput =" << AvgThroughput<< "Kbps");
   NS_LOG_UNCOND("End to End Delay =" << Delay);
-  NS_LOG_UNCOND("End to End Jitter delay =" << Jitter); 
-  if(!m_backoffRl.IsNull()) return m_backoffRl(((LostPackets*100)/SentPackets),AvgThroughput,Delay.GetMicroSeconds());
+  if(!m_backoffRl.IsNull()) return m_backoffRl(((LostPackets*100)/SentPackets),AvgThroughput,Delay.GetSeconds()/SentPackets*10);
   else return 0;
 }
 
@@ -332,7 +330,7 @@ LrWpanCsmaCa::Start ()
       //否则就现在启动退避时间计算函数
       m_coorDest = m_mac->isCoordDest ();
       m_BE = m_macMinBE;
-      if(!m_coorDest)
+      if(1)
       {
         m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
       }
@@ -424,14 +422,13 @@ LrWpanCsmaCa::RandomBackoffDelay ()
 void 
 LrWpanCsmaCa::RlBackoffDelay()
 {
+  NS_LOG_FUNCTION (this);
   if(m_backoffRl.IsNull())
   {
     NS_LOG_ERROR("zero point of m_backoffRl()"); 
     RandomBackoffDelay ();
     return;
   }
-  
-  NS_LOG_FUNCTION (this);
   //获取发送速率
   uint64_t symbolRate = (uint64_t) m_mac->GetPhy ()->GetDataOrSymbolRate (false);
 
@@ -670,7 +667,7 @@ LrWpanCsmaCa::PlmeCcaConfirm (LrWpanPhyEnumeration status)
           else
             {
               NS_LOG_DEBUG ("Perform another backoff; m_NB = " << static_cast<uint16_t> (m_NB));
-              if(!m_coorDest)
+              if(1)
               {
                 m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
               }
