@@ -245,6 +245,49 @@ LrWpanCsmaCa::GetTimeToNextSlot (void) const
 }
 // 启动冲突检测 mac -> csma_ca::Start()
 
+uint32_t 
+LrWpanCsmaCa::ActionRlBackoff()
+{
+
+  uint32_t SentPackets = 0;
+	uint32_t ReceivedPackets = 0;
+	uint32_t LostPackets = 0;
+  int j=0;
+  float AvgThroughput = 0;
+  Time Jitter;
+  Time Delay;
+  Ptr<FlowMonitor> monitor = LrWpanFlowMonitorHelper::Get() ->GetMonitor();
+  Ptr<LrWpanFlowClassifier> classifier = DynamicCast<LrWpanFlowClassifier> (LrWpanFlowMonitorHelper::Get() ->GetClassifier ());
+
+  std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats ();
+
+  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator iter = stats.begin (); iter != stats.end (); ++iter)
+  {
+      ns3::LrWpanFlowClassifier::TwoTuple t = classifier->FindFlow (iter->first);
+      if(t.sourceAddress != m_mac->GetExtendedAddress()) continue;
+      SentPackets = SentPackets +(iter->second.txPackets);
+      ReceivedPackets = ReceivedPackets + (iter->second.rxPackets);
+      LostPackets = LostPackets + (iter->second.txPackets-iter->second.rxPackets);
+      AvgThroughput = AvgThroughput + (iter->second.rxBytes * 8.0/(iter->second.timeLastRxPacket.GetSeconds()-iter->second.timeFirstTxPacket.GetSeconds())/1024);
+      Delay = Delay + (iter->second.delaySum);
+      Jitter = Jitter + (iter->second.jitterSum);
+      j = j + 1;
+  }
+
+  AvgThroughput = AvgThroughput/j;  
+  NS_LOG_UNCOND("--------Total Results of the simulation----------"<<std::endl);
+  NS_LOG_UNCOND("Total sent packets  =" << SentPackets);
+  NS_LOG_UNCOND("Total Received Packets =" << ReceivedPackets);
+  NS_LOG_UNCOND("Total Lost Packets =" << LostPackets);
+  NS_LOG_UNCOND("Packet Loss ratio =" << ((double)(LostPackets*100)/SentPackets)<< "%");
+  NS_LOG_UNCOND("Packet delivery ratio =" << ((double)(ReceivedPackets*100)/SentPackets)<< "%");
+  NS_LOG_UNCOND("Average Throughput =" << AvgThroughput<< "Kbps");
+  NS_LOG_UNCOND("End to End Delay =" << Delay);
+  NS_LOG_UNCOND("End to End Jitter delay =" << Jitter); 
+  if(!m_backoffRl.IsNull()) return m_backoffRl(((LostPackets*100)/SentPackets),AvgThroughput,Delay.GetMicroSeconds());
+  else return 0;
+}
+
 void
 LrWpanCsmaCa::Start ()
 {
@@ -287,7 +330,7 @@ LrWpanCsmaCa::Start ()
       //否则就现在启动退避时间计算函数
       m_coorDest = m_mac->isCoordDest ();
       m_BE = m_macMinBE;
-      if(0 && m_coorDest)
+      if(!m_coorDest)
       {
         m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
       }
@@ -379,9 +422,9 @@ LrWpanCsmaCa::RandomBackoffDelay ()
 void 
 LrWpanCsmaCa::RlBackoffDelay()
 {
-  if(m_backOffRl.IsNull())
+  if(m_backoffRl.IsNull())
   {
-    NS_LOG_ERROR("zero point of m_backOffRl()"); 
+    NS_LOG_ERROR("zero point of m_backoffRl()"); 
     RandomBackoffDelay ();
     return;
   }
@@ -393,7 +436,7 @@ LrWpanCsmaCa::RlBackoffDelay()
   if (m_randomBackoffPeriodsLeft == 0 || IsUnSlottedCsmaCa ())
     {
 
-      m_randomBackoffPeriodsLeft = (uint64_t)m_backOffRl();
+      m_randomBackoffPeriodsLeft = (uint64_t)ActionRlBackoff();
     }
   Time randomBackoff = Seconds ((double) (m_randomBackoffPeriodsLeft * GetUnitBackoffPeriod ()) / symbolRate);
   if (IsUnSlottedCsmaCa ())
@@ -581,6 +624,7 @@ LrWpanCsmaCa::PlmeCcaConfirm (LrWpanPhyEnumeration status)
                   if (!m_lrWpanMacStateCallback.IsNull ())
                     {
                       NS_LOG_LOGIC ("Notifying MAC of idle channel");
+                      ActionRlBackoff();
                       m_lrWpanMacStateCallback (CHANNEL_IDLE);
                     }
                 }
@@ -624,7 +668,7 @@ LrWpanCsmaCa::PlmeCcaConfirm (LrWpanPhyEnumeration status)
           else
             {
               NS_LOG_DEBUG ("Perform another backoff; m_NB = " << static_cast<uint16_t> (m_NB));
-              if(m_coorDest)
+              if(!m_coorDest)
               {
                 m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
               }
@@ -657,7 +701,7 @@ void
 LrWpanCsmaCa::SetLrWpanNwkBackOffRl(LrWpanBackOffRlCallback rlCb)
 {
   NS_LOG_FUNCTION (this);
-  m_backOffRl = rlCb;
+  m_backoffRl = rlCb;
 }
 
 void

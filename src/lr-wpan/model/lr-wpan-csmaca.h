@@ -27,7 +27,8 @@
 #include <ns3/object.h>
 #include <ns3/event-id.h>
 #include <ns3/lr-wpan-mac.h>
-
+#include <ns3/lr-wpan-flow-helper.h>
+#include <ns3/lr-wpan-flow-classifier.h>
 namespace ns3 {
 
 class UniformRandomVariable;
@@ -38,7 +39,7 @@ class UniformRandomVariable;
  * This method informs the MAC whether the channel is idle or busy.
  */
 typedef Callback<void, LrWpanMacState> LrWpanMacStateCallback;
-typedef Callback<uint64_t> LrWpanBackOffRlCallback;
+typedef Callback<uint32_t ,uint32_t , float , float> LrWpanBackOffRlCallback;
 /**
  * \ingroup lr-wpan
  *
@@ -387,7 +388,9 @@ private:
    */
   bool m_coorDest;
 
-  LrWpanBackOffRlCallback m_backOffRl;
+  LrWpanBackOffRlCallback m_backoffRl;
+
+  uint32_t ActionRlBackoff();
 };
 
 }
