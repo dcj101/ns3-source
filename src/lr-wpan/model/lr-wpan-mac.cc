@@ -932,8 +932,8 @@ LrWpanMac::CheckQueue ()
               TxQueueElement *txQElement = m_txQueue.front ();
               m_txPkt = txQElement->txQPkt;
               LrWpanMacHeader macHdr;
-              
               m_txPkt->RemoveHeader(macHdr);
+              m_txPkt->RemoveAllByteTags();
               m_sendTrace(macHdr,m_txPkt);
               m_txPkt->AddHeader(macHdr);
 
@@ -1089,9 +1089,7 @@ LrWpanMac::PdDataIndication (uint32_t psduLength, Ptr<Packet> p, uint8_t lqi)
     {
       LrWpanMacHeader receivedMacHdr;
       p->RemoveHeader (receivedMacHdr);
-      
-      m_localDeliverTrace(receivedMacHdr,p);
-
+    
       McpsDataIndicationParams params;
       params.m_dsn = receivedMacHdr.GetSeqNum ();
       params.m_mpduLinkQuality = lqi;
@@ -1142,6 +1140,7 @@ LrWpanMac::PdDataIndication (uint32_t psduLength, Ptr<Packet> p, uint8_t lqi)
           if (!m_mcpsDataIndicationCallback.IsNull ())
             {
               NS_LOG_DEBUG ("promiscuous mode, forwarding up");
+              m_localDeliverTrace(receivedMacHdr,p);
               m_mcpsDataIndicationCallback (params, p);
             }
           else
@@ -1399,6 +1398,7 @@ LrWpanMac::PdDataIndication (uint32_t psduLength, Ptr<Packet> p, uint8_t lqi)
                   // 如果接收到了数据包
                   // If it is a data frame, push it up the stack.
                   NS_LOG_DEBUG ("Data Packet is for me; forwarding up");
+                  m_localDeliverTrace(receivedMacHdr,p);
                   m_mcpsDataIndicationCallback (params, p);
                 }
               else if (receivedMacHdr.IsAcknowledgment () && m_txPkt && m_lrWpanMacState == MAC_ACK_PENDING)
