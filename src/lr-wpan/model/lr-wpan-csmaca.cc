@@ -264,7 +264,9 @@ LrWpanCsmaCa::ActionRlBackoff()
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator iter = stats.begin (); iter != stats.end (); ++iter)
   {
       ns3::LrWpanFlowClassifier::TwoTuple t = classifier->FindFlow (iter->first);
+
       if(t.sourceAddress != m_mac->GetExtendedAddress()) continue;
+      
       SentPackets = SentPackets +(iter->second.txPackets);
       ReceivedPackets = ReceivedPackets + (iter->second.rxPackets);
       LostPackets = LostPackets + (iter->second.txPackets-iter->second.rxPackets);

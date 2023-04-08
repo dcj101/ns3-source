@@ -11,7 +11,7 @@
 #include <ns3/wsn-flow-monitor-helper.h>
 #include <ns3/lr-wpan-flow-helper.h>
 #include <iostream>
-
+#include "ns3/random-variable-stream.h"
 
 using namespace ns3;
 using namespace std;
@@ -155,19 +155,19 @@ int main()
   dev0->GetPhy ()->SetMobility (sender0Mobility);
 
   Ptr<ConstantPositionMobilityModel> sender1Mobility = CreateObject<ConstantPositionMobilityModel> ();
-  sender1Mobility->SetPosition (Vector (0,10,0)); //10 m distance
+  sender1Mobility->SetPosition (Vector (0,30,0)); //10 m distance
   dev1->GetPhy ()->SetMobility (sender1Mobility);
 
   Ptr<ConstantPositionMobilityModel> sender2Mobility = CreateObject<ConstantPositionMobilityModel> ();
-  sender2Mobility->SetPosition (Vector (10,0,0));
+  sender2Mobility->SetPosition (Vector (30,0,0));
   dev2->GetPhy ()->SetMobility (sender2Mobility);
 
   Ptr<ConstantPositionMobilityModel> sender3Mobility = CreateObject<ConstantPositionMobilityModel> ();
-  sender3Mobility->SetPosition (Vector (0,0,10)); //10 m distance
+  sender3Mobility->SetPosition (Vector (0,0,30)); //10 m distance
   dev3->GetPhy ()->SetMobility (sender3Mobility);
 
   Ptr<ConstantPositionMobilityModel> sender4Mobility = CreateObject<ConstantPositionMobilityModel> ();
-  sender4Mobility->SetPosition (Vector (0,10,10)); //10 m distance
+  sender4Mobility->SetPosition (Vector (0,30,30)); //10 m distance
   dev4->GetPhy ()->SetMobility (sender4Mobility);
 
 
@@ -180,24 +180,25 @@ int main()
   Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::JoinRequest,
                       nwk0,nwk1);
   // nwk0->JoinRequest(NODE_TYPE::COOR,NULL);
-  Simulator::Schedule(Seconds(5.0),&WsnNwkProtocol::JoinRequest,
+  Simulator::Schedule(Seconds(15.0),&WsnNwkProtocol::JoinRequest,
                       nwk3,nwk0);
   // // nwk1->JoinRequest(NODE_TYPE::EDGE,nwk1);
 
-  Simulator::Schedule(Seconds(10.0),&WsnNwkProtocol::JoinRequest,
+  Simulator::Schedule(Seconds(30.0),&WsnNwkProtocol::JoinRequest,
                       nwk1,nwk0);
 
-  Simulator::Schedule(Seconds(15.0),&WsnNwkProtocol::JoinRequest,
+  Simulator::Schedule(Seconds(45.0),&WsnNwkProtocol::JoinRequest,
                       nwk2,nwk3);
 
-  Simulator::Schedule(Seconds(20.0),&WsnNwkProtocol::JoinRequest,
+  Simulator::Schedule(Seconds(60.0),&WsnNwkProtocol::JoinRequest,
                       nwk4,nwk3);        
 
-  double sendtime = 22;
+  double sendtime = 100;
 
-  for(int i = 0; i < 10; i+=6)
+  for(int i = 0; i < 1500; i+=6)
   { 
-    double delay = 0.01;
+    Ptr<UniformRandomVariable> uniformRandomVariable = CreateObject<UniformRandomVariable> ();;
+    double delay = uniformRandomVariable->GetValue (0, 1);
     Simulator::Schedule(Seconds(sendtime+(i+0)*delay),&Test,nwk2,nwk1);
     Simulator::Schedule(Seconds(sendtime+(i+1)*delay),&Test,nwk1,nwk2);
     Simulator::Schedule(Seconds(sendtime+(i+2)*delay),&Test,nwk4,nwk1);
@@ -230,7 +231,7 @@ int main()
 		for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator iter = stats.begin (); iter != stats.end (); ++iter)
 		{
         LrWpanFlowClassifier::TwoTuple t = classifier->FindFlow (iter->first);
-
+        if(t.sourceAddress != dev1->GetMac()->GetExtendedAddress()) continue;
         NS_LOG_UNCOND("----Flow ID:" <<iter->first);
         NS_LOG_UNCOND("Src Addr" <<t.sourceAddress << "Dst Addr "<< t.destinationAddress);
         NS_LOG_UNCOND("Sent Packets=" <<iter->second.txPackets);
