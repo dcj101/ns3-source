@@ -18,6 +18,7 @@
 #include "wsn-route.h"
 
 #include <utility>
+#include <vector>
 #include <iostream>
 
 
@@ -88,6 +89,10 @@ class WsnNwkProtocol : public Object
     void StartConfirm (MlmeStartConfirmParams params);
 
     uint64_t RlCallback();
+
+    void GetFVGMode(std::vector<uint32_t> mode);
+
+    
 
     protected:
     

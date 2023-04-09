@@ -277,7 +277,7 @@ WsnNwkProtocol::DataIndication (McpsDataIndicationParams params, Ptr<Packet> p)
     p->RemoveHeader(receiverNwkHeader);
 
     double Delay = 0.0;
-    double gap = 0.01;
+    double gap = 0.1;
 
     if(m_nodeType != NODE_TYPE::EDGE)
     {

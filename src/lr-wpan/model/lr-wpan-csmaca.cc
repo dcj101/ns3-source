@@ -331,14 +331,7 @@ LrWpanCsmaCa::Start ()
       //否则就现在启动退避时间计算函数
       m_coorDest = m_mac->isCoordDest ();
       m_BE = m_macMinBE;
-      if(1)
-      {
-        m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
-      }
-      else
-      {
-        m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RandomBackoffDelay, this);
-      }
+      m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
     }
 }
 
@@ -437,6 +430,11 @@ LrWpanCsmaCa::RlBackoffDelay()
     {
 
       m_randomBackoffPeriodsLeft = (uint64_t)ActionRlBackoff();
+      if(m_randomBackoffPeriodsLeft == -1) 
+      {
+        RandomBackoffDelay();
+        return;
+      }
     }
   Time randomBackoff = Seconds ((double) (m_randomBackoffPeriodsLeft * GetUnitBackoffPeriod ()) / symbolRate);
   if (IsUnSlottedCsmaCa ())
@@ -668,14 +666,7 @@ LrWpanCsmaCa::PlmeCcaConfirm (LrWpanPhyEnumeration status)
           else
             {
               NS_LOG_DEBUG ("Perform another backoff; m_NB = " << static_cast<uint16_t> (m_NB));
-              if(1)
-              {
-                m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
-              }
-              else
-              {
-                m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RandomBackoffDelay, this); //Perform another backoff (step 2)
-              }   
+              m_randomBackoffEvent = Simulator::ScheduleNow (&LrWpanCsmaCa::RlBackoffDelay, this);
             }
         }
     }

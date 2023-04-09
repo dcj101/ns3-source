@@ -199,7 +199,7 @@ private:
 
 private:
   Ptr<SpectrumChannel> m_channel; //!< channel to be used for the devices
-
+  
 };
 
 }

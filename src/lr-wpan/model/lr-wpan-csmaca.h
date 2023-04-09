@@ -391,6 +391,7 @@ private:
   LrWpanBackOffRlCallback m_backoffRl;
 
   uint32_t ActionRlBackoff();
+
 };
 
 }
