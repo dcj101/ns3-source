@@ -258,7 +258,7 @@ LrWpanCsmaCa::ActionRlBackoff()
   Time Delay;
   Ptr<FlowMonitor> monitor = LrWpanFlowMonitorHelper::Get() ->GetMonitor();
   Ptr<LrWpanFlowClassifier> classifier = DynamicCast<LrWpanFlowClassifier> (LrWpanFlowMonitorHelper::Get() ->GetClassifier ());
-
+  classifier->getlock();
   std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats ();
 
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator iter = stats.begin (); iter != stats.end (); ++iter)
@@ -276,14 +276,15 @@ LrWpanCsmaCa::ActionRlBackoff()
   }
 
   AvgThroughput = AvgThroughput/j;  
-  NS_LOG_UNCOND("--------Total Results of the simulation----------"<<std::endl);
-  NS_LOG_UNCOND("Total sent packets  =" << SentPackets);
-  NS_LOG_UNCOND("Total Received Packets =" << ReceivedPackets);
-  NS_LOG_UNCOND("Total Lost Packets =" << LostPackets);
+  NS_LOG_UNCOND("--------CSMACA simulation----------"<<std::endl);
+  NS_LOG_UNCOND("CSMACA sent packets  =" << SentPackets);
+  NS_LOG_UNCOND("CSMACA Received Packets =" << ReceivedPackets);
+  NS_LOG_UNCOND("CSMACA Lost Packets =" << LostPackets);
   NS_LOG_UNCOND("Packet Loss ratio =" << ((double)(LostPackets*100)/SentPackets)<< "%");
   NS_LOG_UNCOND("Packet delivery ratio =" << ((double)(ReceivedPackets*100)/SentPackets)<< "%");
   NS_LOG_UNCOND("Average Throughput =" << AvgThroughput<< "Kbps");
   NS_LOG_UNCOND("End to End Delay =" << Delay);
+  classifier->releaselock();
   if(!m_backoffRl.IsNull()) return m_backoffRl(((LostPackets*100)/SentPackets),AvgThroughput,Delay.GetSeconds()/SentPackets*10);
   else return 0;
 }
