@@ -333,7 +333,8 @@ WsnNwkProtocol::DataIndication (McpsDataIndicationParams params, Ptr<Packet> p)
           NS_LOG_FUNCTION(this << " i  am not the learning node");
           return;
         }
-        RecvModel(p->Copy());
+        if(receiverNwkHeader.GetDestAddr() != NwkShortAddress((uint16_t)0))
+          RecvModel(p->Copy());
         NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << "s Received model packet of size " << p->GetSize ());
         std::vector<NeighborTable::NeighborEntry> ntable = m_ntable.GetNeighborEntries();
         for(auto it : ntable)
@@ -461,7 +462,6 @@ WsnNwkProtocol::GetModel(void)
     Simulator::Schedule(Seconds(1.0),&WsnNwkProtocol::GetModel,this);
     return;
   }
-  while(model.size() > 5) model.pop_back();
   for(auto it : model)
   {
     NS_LOG_UNCOND(it << " ");
@@ -470,11 +470,7 @@ WsnNwkProtocol::GetModel(void)
   
   Ptr<Packet> packet = Create<Packet>(50);
   WsnFedTag wsnFedTag(model);
-  // std::vector<double> t;
-  // t = wsnFedTag.Get();
-  // NS_LOG_FUNCTION(this << " t size " << t.size());
   packet->AddPacketTag(wsnFedTag);
-
   Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::Send,
               this,m_addr,NwkShortAddress((uint16_t)0)
               ,packet,NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_MODEL_RECV);
@@ -484,11 +480,18 @@ void
 WsnNwkProtocol::RecvModel(Ptr<Packet> model)
 {
   NS_LOG_FUNCTION(this);
-  return;
   WsnFedTag m_model;
   model->RemovePacketTag(m_model);
-  m_wsnRecvModelCallback(m_model.Get());
-  Simulator::Schedule(Seconds(5.0),&WsnNwkProtocol::GetModel,this);
+  std::vector<double> model_;
+  model_ = m_model.Get();
+  for(auto it : model_)
+  {
+    NS_LOG_UNCOND(it << " ");
+  }
+  NS_LOG_UNCOND("\n");
+
+  // m_wsnRecvModelCallback(m_model.Get());
+  // Simulator::Schedule(Seconds(5.0),&WsnNwkProtocol::GetModel,this);
 }
 
 void 
@@ -506,17 +509,35 @@ WsnNwkProtocol::FvGModel(Ptr<Packet> model)
   }
   else
   {
-    double tt = m_modelFvg[m_modelFvg.size()-1];
+    double &tt = m_modelFvg[m_modelFvg.size()-1];
     for(uint32_t i = 0; i < m_modelFvg.size()-1; ++ i)
     {
       m_modelFvg[i] = m[i]*(m_modelFvg[i]*tt)/(tt+1);
     }
+    tt++;
   }
   for(auto it : m_modelFvg)
   {
-    NS_LOG_UNCOND(it << " ");
+    NS_LOG_UNCOND(it << " <-> ");
   }
   NS_LOG_UNCOND("\n");
+  if(m_modelFvg[m_modelFvg.size()-1] > 1)
+  {
+    double Delay = 0.1;
+    std::vector<NeighborTable::NeighborEntry> ntable = m_ntable.GetNeighborEntries();
+    for(auto it : ntable)
+    {
+      // 注意要把包复制出来，要不然会出现浅拷贝
+      Ptr<Packet> newp = Create<Packet>(0);
+      WsnFedTag newTag(m_modelFvg);
+      newp->AddPacketTag(newTag);
+      Simulator::Schedule(Seconds(Delay),&WsnNwkProtocol::Send,
+                    this,m_addr,it.networkAddr
+                    ,newp,NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_MODEL_RECV);
+      Delay += 0.1;
+      NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " Coor send fvg model --->>>");
+    }
+  }
 }
 
 void
