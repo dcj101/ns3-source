@@ -97,6 +97,8 @@ class WsnNwkProtocol : public Object
 
     void SetRecvModelCallBack(WsnRecvModelCallback mCb);
 
+    void SetGetModelCallBack(WsnGetModelCallback mCb);
+
     void RecvModel(Ptr<Packet> model);
 
     void FvGModel(Ptr<Packet> model);

@@ -427,6 +427,12 @@ WsnNwkProtocol::SetRecvModelCallBack(WsnRecvModelCallback mCb)
   m_wsnRecvModelCallback = mCb;
 }
 
+void
+WsnNwkProtocol::SetGetModelCallBack(WsnGetModelCallback mCb)
+{
+  m_wsnGetModelCallback = mCb;
+}
+
 void 
 WsnNwkProtocol::DoInitialize (void)
 {
@@ -498,6 +504,11 @@ WsnNwkProtocol::FvGModel(Ptr<Packet> model)
       m_modelFvg[i] = m[i]*(m_modelFvg[i]*tt)/(tt+1);
     }
   }
+  for(auto it : m_modelFvg)
+  {
+    NS_LOG_UNCOND(it << " ");
+  }
+  NS_LOG_UNCOND("\n");
 }
 
 void
