@@ -56,7 +56,6 @@ WsnNwkProtocol::Send(NwkShortAddress sourceaddr,
   {
     WsnNwkPayload wsnNwkPayload;
     wsnNwkPayload.SetnwkCommandIdentifier(dtype);
-    
     packet->AddPacketTag(wsnNwkPayload);
   }
   
@@ -345,6 +344,7 @@ WsnNwkProtocol::DataIndication (McpsDataIndicationParams params, Ptr<Packet> p)
           }
           // 注意要把包复制出来，要不然会出现浅拷贝
           Ptr<Packet> newp = p->Copy();
+
           Simulator::Schedule(Seconds(Delay),&WsnNwkProtocol::Send,
                         this,m_addr,it.networkAddr
                         ,newp,NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_MODEL_RECV);
@@ -461,14 +461,20 @@ WsnNwkProtocol::GetModel(void)
     Simulator::Schedule(Seconds(1.0),&WsnNwkProtocol::GetModel,this);
     return;
   }
+  while(model.size() > 5) model.pop_back();
   for(auto it : model)
   {
     NS_LOG_UNCOND(it << " ");
   }
   NS_LOG_UNCOND("\n");
-  Ptr<Packet> packet = Create<Packet>(0);
+  
+  Ptr<Packet> packet = Create<Packet>(50);
   WsnFedTag wsnFedTag(model);
+  // std::vector<double> t;
+  // t = wsnFedTag.Get();
+  // NS_LOG_FUNCTION(this << " t size " << t.size());
   packet->AddPacketTag(wsnFedTag);
+
   Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::Send,
               this,m_addr,NwkShortAddress((uint16_t)0)
               ,packet,NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_MODEL_RECV);
@@ -478,6 +484,7 @@ void
 WsnNwkProtocol::RecvModel(Ptr<Packet> model)
 {
   NS_LOG_FUNCTION(this);
+  return;
   WsnFedTag m_model;
   model->RemovePacketTag(m_model);
   m_wsnRecvModelCallback(m_model.Get());
@@ -491,6 +498,7 @@ WsnNwkProtocol::FvGModel(Ptr<Packet> model)
   WsnFedTag m_model;
   model->RemovePacketTag(m_model);
   std::vector<double> m = m_model.Get(); 
+  NS_LOG_FUNCTION(this << m.size() << "-------------------------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
   if(!m_modelFvg.size())
   {
     m_modelFvg = m; 

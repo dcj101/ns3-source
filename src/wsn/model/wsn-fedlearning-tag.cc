@@ -36,21 +36,23 @@ WsnFedTag::WsnFedTag (std::vector<double> mode)
 uint32_t
 WsnFedTag::GetSerializedSize (void) const
 {
-  return m_model.size()*sizeof (double);
+  return size*sizeof (double)+4;
 }
 
 void
 WsnFedTag::Serialize (TagBuffer i) const
 {
-  for(auto it : m_model)
+  i.WriteU32(size);
+  for(uint32_t it = 0; it < size; ++ it)
   {
-    i.WriteDouble(it);
+    i.WriteDouble(m_model[it]);
   }
 }
 
 void
 WsnFedTag::Deserialize (TagBuffer i)
 {
+  size = i.ReadU32();
   for(uint32_t j = 0; j < size; ++ j)
   {
     double x = i.ReadDouble ();
