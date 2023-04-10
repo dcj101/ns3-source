@@ -45,13 +45,13 @@ WsnSensorTag::GetSerializedSize (void) const
 void
 WsnSensorTag::Serialize (TagBuffer i) const
 {
-  i.WriteU8 (m_temperature);
+  i.WriteDouble (m_temperature);
 }
 
 void
 WsnSensorTag::Deserialize (TagBuffer i)
 {
-  m_temperature = i.ReadU8 ();
+  m_temperature = i.ReadDouble ();
 }
 
 void

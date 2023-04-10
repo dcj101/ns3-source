@@ -38,7 +38,7 @@ WsnNwkProtocol::Send(NwkShortAddress sourceaddr,
                       NwkHeader::FrameType ftype,
                       WsnNwkPayload::NWKCommandIdentifier dtype)
 {
-  NS_LOG_INFO(this << Simulator::Now ().GetSeconds () << " source " << sourceaddr << " dst " << dstaddr << " ftype = " << ftype );
+  NS_LOG_INFO(this << Simulator::Now ().GetSeconds () << " mddr " << m_addr << " source " << sourceaddr << " dst " << dstaddr << " ftype = " << ftype );
 
   if(m_depth == -1) 
   {
@@ -50,11 +50,14 @@ WsnNwkProtocol::Send(NwkShortAddress sourceaddr,
   nwkHeader.SetDestAddr(dstaddr);
   nwkHeader.SetSourceAddr(sourceaddr);
   packet->AddHeader(nwkHeader);
+    WsnNwkPayload pl;
 
   if(ftype == NwkHeader::NWK_FRAME_COMMAND)
   {
     WsnNwkPayload wsnNwkPayload;
+    wsnNwkPayload.SetnwkCommandIdentifier(dtype);
     
+    packet->AddPacketTag(wsnNwkPayload);
   }
   
   McpsDataRequestParams params;
@@ -186,9 +189,9 @@ WsnNwkProtocol::JoinRequest(Ptr<WsnNwkProtocol> wsnNwkProtocol)
                         this->m_netDevice->GetMac(),params);
   
   if(m_nodeType != NODE_TYPE::COOR)
-    Simulator::Schedule(Seconds(0.01),&WsnNwkProtocol::Send,
-                        this,m_addr,parents,Create<Packet>(0),
-                        NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_NONE);
+    Simulator::Schedule(Seconds(0.1),&WsnNwkProtocol::Send,
+                        this,m_addr,parents,Create<Packet>(50),
+                        NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_NETWORK_UPDATE);
 }
 
 void 
@@ -283,14 +286,20 @@ WsnNwkProtocol::DataIndication (McpsDataIndicationParams params, Ptr<Packet> p)
     NwkHeader receiverNwkHeader;
     p->RemoveHeader(receiverNwkHeader);
 
-    double Delay = 0.0;
+    double Delay = 0.1;
     double gap = 0.1;
 
-    if(m_nodeType != NODE_TYPE::EDGE)
+     
+    if(receiverNwkHeader.GetType() == NwkHeader::NWK_FRAME_COMMAND)
     {
-      
-      if(receiverNwkHeader.GetType() == NwkHeader::NWK_FRAME_COMMAND)
+      WsnNwkPayload pl;
+      p->RemovePacketTag(pl);
+      if(pl.GetnwkCommandIdentifier() == (uint8_t)WsnNwkPayload::WSN_PL_NETWORK_UPDATE)
       {
+        if(m_nodeType == NODE_TYPE::EDGE) 
+        {
+          return;
+        }
         NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << "s Received Command packet of size " << p->GetSize ());
         std::vector<NeighborTable::NeighborEntry> ntable = m_ntable.GetNeighborEntries();
         for(auto it : ntable)
@@ -304,46 +313,58 @@ WsnNwkProtocol::DataIndication (McpsDataIndicationParams params, Ptr<Packet> p)
             m_rtable.Print();
             continue;
           }
-          // Send(receiverNwkHeader.GetSourceAddr(),it.networkAddr,p,NwkHeader::NWK_FRAME_COMMAND);
+          // 注意要把包复制出来，要不然会出现浅拷贝
+          Ptr<Packet> newp = p->Copy();
           Simulator::Schedule(Seconds(Delay),&WsnNwkProtocol::Send,
                         this,receiverNwkHeader.GetSourceAddr(),it.networkAddr
-                        ,p,NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_NONE);
+                        ,newp,NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_NETWORK_UPDATE);
           Delay += gap;
           NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " send update route --->>>");
         }
       }
-      else 
+      else if(pl.GetnwkCommandIdentifier() == (uint8_t)WsnNwkPayload::WSN_PL_MODEL_RECV)
       {
-        if(m_nodeType == NODE_TYPE::ROUTE || (receiverNwkHeader.GetDestAddr() != m_addr))
+        if(m_wsnGetModelCallback.IsNull())
         {
-          NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " secs | Received DATA packet of size " << p->GetSize () << 
-          ",but i am a " << m_nodeType << " m_addr is " << m_addr << " ,so i will forwarding packet");
-          // 路由器转发数据包
-          // Send(receiverNwkHeader.GetSourceAddr(),receiverNwkHeader.GetDestAddr(),p,NwkHeader::NWK_FRAME_DATA);
-            Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::Send,
-                  this,receiverNwkHeader.GetSourceAddr(),receiverNwkHeader.GetDestAddr(),
-                  p,NwkHeader::NWK_FRAME_DATA,WsnNwkPayload::WSN_PL_NONE);          
+          NS_LOG_FUNCTION(this << " i  am not the learning node");
+          return;
         }
-        else 
+        RecvModel(p->Copy());
+        NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << "s Received model packet of size " << p->GetSize ());
+        std::vector<NeighborTable::NeighborEntry> ntable = m_ntable.GetNeighborEntries();
+        for(auto it : ntable)
         {
-          NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " secs | Coor Received DATA packet of size " << p->GetSize ());
-          //实现应用层回调 
+          if(it.extendedAddr == params.m_srcExtAddr) 
+          {
+            continue;
+          }
+          // 注意要把包复制出来，要不然会出现浅拷贝
+          Ptr<Packet> newp = p->Copy();
+          Simulator::Schedule(Seconds(Delay),&WsnNwkProtocol::Send,
+                        this,m_addr,it.networkAddr
+                        ,newp,NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_MODEL_RECV);
+          Delay += gap;
+          NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " send update model --->>>");
         }
       }
     }
     else 
     {
-      if(receiverNwkHeader.GetType() == NwkHeader::NWK_FRAME_COMMAND)
+      if(m_nodeType == NODE_TYPE::ROUTE || (receiverNwkHeader.GetDestAddr() != m_addr))
       {
-        // 报文抛弃 end Device
-        NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " secs | Received Command packet of size " << p->GetSize () << 
-        ", but i am a EDGE ! my addr is = " << m_addr);
+        NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " secs | Received DATA packet of size " << p->GetSize () << 
+        ",but i am a " << m_nodeType << " m_addr is " << m_addr << " ,so i will forwarding packet");
+        // 路由器转发数据包
+        // Send(receiverNwkHeader.GetSourceAddr(),receiverNwkHeader.GetDestAddr(),p,NwkHeader::NWK_FRAME_DATA);
+          Ptr<Packet> newp = p->Copy();
+          Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::Send,
+                this,receiverNwkHeader.GetSourceAddr(),receiverNwkHeader.GetDestAddr(),
+                newp,NwkHeader::NWK_FRAME_DATA,WsnNwkPayload::WSN_PL_NONE);          
       }
       else 
       {
-        NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " secs | Received DATA packet of size " << p->GetSize ()
-        << " m_addr is " << m_addr);
-        //实现应用层回调
+        NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " secs | Coor Received DATA packet of size " << p->GetSize ());
+        //实现应用层回调 
       }
     }
 }
@@ -394,6 +415,12 @@ WsnNwkProtocol::SetCallbackSet()
      m_netDevice->GetMac ()->SetMcpsDataIndicationCallback (m_McpsDataIndicationCallback);
 }
 
+void
+WsnNwkProtocol::SetRecvModelCallBack(WsnRecvModelCallback mCb)
+{
+  m_wsnRecvModelCallback = mCb;
+}
+
 void 
 WsnNwkProtocol::DoInitialize (void)
 {
@@ -429,9 +456,13 @@ WsnNwkProtocol::GetModel(void)
               ,packet,NwkHeader::NWK_FRAME_DATA,WsnNwkPayload::WSN_PL_NONE);
 }
 
-void RecvModel()
+void 
+WsnNwkProtocol::RecvModel(Ptr<Packet> model)
 {
-
+  WsnFedTag m_model;
+  model->RemovePacketTag(m_model);
+  m_wsnRecvModelCallback(m_model.Get());
+  Simulator::Schedule(Seconds(5.0),&WsnNwkProtocol::GetModel,this);
 }
 
 void

@@ -39,7 +39,7 @@ int main()
   // LogComponentEnable ("LrWpanPhy", LOG_LEVEL_ALL);
   // LogComponentEnable ("LrWpanCsmaCa", LOG_LEVEL_ALL);
   // LogComponentEnable ("LrWpanNetDevice", LOG_LEVEL_ALL);
-  // LogComponentEnable ("WsnNwkProtocol", LOG_LEVEL_ALL);
+  LogComponentEnable ("WsnNwkProtocol", LOG_LEVEL_ALL);
   // LogComponentEnable ("NwkHeader", LOG_LEVEL_ALL);
   // LogComponentEnable ("WsnAddressAllocator", LOG_LEVEL_ALL);
   // LogComponentEnable ("Node", LOG_LEVEL_ALL);

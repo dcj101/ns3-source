@@ -39,6 +39,7 @@ enum NODE_TYPE
 class WsnNwkProtocol : public Object
 {
     public:
+    typedef Callback<void,std::vector<double> > WsnRecvModelCallback;
     typedef Callback<std::vector<double> > WsnGetModelCallback;
 
     WsnNwkProtocol();
@@ -95,7 +96,9 @@ class WsnNwkProtocol : public Object
 
     void GetModel();
 
-    void RecvModel();
+    void SetRecvModelCallBack(WsnRecvModelCallback mCb);
+
+    void RecvModel(Ptr<Packet> model);
 
     
 
@@ -144,9 +147,10 @@ class WsnNwkProtocol : public Object
     
     McpsDataIndicationCallback m_McpsDataIndicationCallback;
 
+    WsnRecvModelCallback m_wsnRecvModelCallback;
+
     WsnGetModelCallback m_wsnGetModelCallback;
 
-    EventId m_modelUpdate;
 };  
 
 class WsnNwkProtocolHelper

@@ -28,7 +28,7 @@ WsnNwkPayload::GetInstanceTypeId (void) const
 uint32_t 
 WsnNwkPayload::GetSerializedSize (void) const
 {
-    return 0;
+    return 1+1+1+2+1+2+1+1+replayList.size()*2+1+2+1+1+linkStatusList.size()*(1+2);
 }
 
 void 
@@ -62,6 +62,7 @@ void
 WsnNwkPayload::Serialize (TagBuffer start) const
 {
     start.WriteU8(nwkCommandIdentifier);
+    return;
     start.WriteU8(commandOption);
     start.WriteU8(routeRequestIdentifier);
     start.WriteU16(responseAddr);
@@ -89,6 +90,7 @@ void
 WsnNwkPayload::Deserialize (TagBuffer start)
 {
     nwkCommandIdentifier = start.ReadU8();
+    return;
     commandOption = start.ReadU8();
     routeRequestIdentifier = start.ReadU8();
     responseAddr = start.ReadU16();
