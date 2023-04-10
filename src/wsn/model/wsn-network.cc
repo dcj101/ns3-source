@@ -35,7 +35,8 @@ WsnNwkProtocol::WsnNwkProtocol(NODE_TYPE type)
 void 
 WsnNwkProtocol::Send(NwkShortAddress sourceaddr,  
                       NwkShortAddress dstaddr,Ptr<Packet> packet, 
-                      NwkHeader::FrameType ftype)
+                      NwkHeader::FrameType ftype,
+                      WsnNwkPayload::NWKCommandIdentifier dtype)
 {
   NS_LOG_INFO(this << Simulator::Now ().GetSeconds () << " source " << sourceaddr << " dst " << dstaddr << " ftype = " << ftype );
 
@@ -50,6 +51,12 @@ WsnNwkProtocol::Send(NwkShortAddress sourceaddr,
   nwkHeader.SetSourceAddr(sourceaddr);
   packet->AddHeader(nwkHeader);
 
+  if(ftype == NwkHeader::NWK_FRAME_COMMAND)
+  {
+    WsnNwkPayload wsnNwkPayload;
+    
+  }
+  
   McpsDataRequestParams params;
   m_ack = 1;
   if(m_ack) 
@@ -180,8 +187,8 @@ WsnNwkProtocol::JoinRequest(Ptr<WsnNwkProtocol> wsnNwkProtocol)
   
   if(m_nodeType != NODE_TYPE::COOR)
     Simulator::Schedule(Seconds(0.01),&WsnNwkProtocol::Send,
-                        this,m_addr,parents,Create<Packet>(1),
-                        NwkHeader::NWK_FRAME_COMMAND);
+                        this,m_addr,parents,Create<Packet>(0),
+                        NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_NONE);
 }
 
 void 
@@ -300,7 +307,7 @@ WsnNwkProtocol::DataIndication (McpsDataIndicationParams params, Ptr<Packet> p)
           // Send(receiverNwkHeader.GetSourceAddr(),it.networkAddr,p,NwkHeader::NWK_FRAME_COMMAND);
           Simulator::Schedule(Seconds(Delay),&WsnNwkProtocol::Send,
                         this,receiverNwkHeader.GetSourceAddr(),it.networkAddr
-                        ,p,NwkHeader::NWK_FRAME_COMMAND);
+                        ,p,NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_NONE);
           Delay += gap;
           NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " send update route --->>>");
         }
@@ -315,7 +322,7 @@ WsnNwkProtocol::DataIndication (McpsDataIndicationParams params, Ptr<Packet> p)
           // Send(receiverNwkHeader.GetSourceAddr(),receiverNwkHeader.GetDestAddr(),p,NwkHeader::NWK_FRAME_DATA);
             Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::Send,
                   this,receiverNwkHeader.GetSourceAddr(),receiverNwkHeader.GetDestAddr(),
-                  p,NwkHeader::NWK_FRAME_DATA);          
+                  p,NwkHeader::NWK_FRAME_DATA,WsnNwkPayload::WSN_PL_NONE);          
         }
         else 
         {
@@ -366,13 +373,6 @@ WsnNwkProtocol::StartConfirm (MlmeStartConfirmParams params)
 }
 
 
-uint64_t 
-WsnNwkProtocol::RlCallback ()
-{
-  uint64_t a = 1;
-  return a;
-}
-
 void 
 WsnNwkProtocol::SetCallbackSet()
 {
@@ -405,6 +405,33 @@ WsnNwkProtocol::DoDispose (void)
     NS_LOG_FUNCTION (this);
     m_node = 0;
     Object::DoDispose ();
+}
+
+void 
+WsnNwkProtocol::GetModel(void)
+{
+  if(m_wsnGetModelCallback.IsNull())
+  {
+    NS_LOG_FUNCTION(this << "m_wsnGetModelCallback is Null");
+    return;
+  }
+  std::vector<double> model = m_wsnGetModelCallback();
+  if(!model.size())
+  {
+    Simulator::Schedule(Seconds(1.0),&WsnNwkProtocol::GetModel,this);
+    return;
+  }
+  Ptr<Packet> packet = Create<Packet>(0);
+  WsnFedTag wsnFedTag(model);
+  packet->AddPacketTag(wsnFedTag);
+  Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::Send,
+              this,m_addr,NwkShortAddress((uint16_t)0)
+              ,packet,NwkHeader::NWK_FRAME_DATA,WsnNwkPayload::WSN_PL_NONE);
+}
+
+void RecvModel()
+{
+
 }
 
 void

@@ -10,12 +10,15 @@
 #include "ns3/type-id.h"
 #include "ns3/ptr.h"
 #include "ns3/mac48-address.h"
+#include "ns3/callback.h"
 
 #include "wsn-address-allocator.h"
 #include "wsn-neighbor-table.h"
 #include "wsn-network-header.h"
 #include "wsn-nwk-short-address.h"
 #include "wsn-route.h"
+#include "wsn-fedlearning-tag.h"
+#include "wsn-network-pl.h"
 
 #include <utility>
 #include <vector>
@@ -36,6 +39,7 @@ enum NODE_TYPE
 class WsnNwkProtocol : public Object
 {
     public:
+    typedef Callback<std::vector<double> > WsnGetModelCallback;
 
     WsnNwkProtocol();
 
@@ -44,7 +48,8 @@ class WsnNwkProtocol : public Object
     static TypeId GetTypeId (void);
     
     void Send(NwkShortAddress sourceaddr,NwkShortAddress dstAddr, 
-                Ptr<Packet> packet, NwkHeader::FrameType ftype);
+                Ptr<Packet> packet, NwkHeader::FrameType ftype, 
+                WsnNwkPayload::NWKCommandIdentifier dtype);
 
     void BuildRtable(std::vector<StaticRoute> &rtable);
 
@@ -88,9 +93,9 @@ class WsnNwkProtocol : public Object
 
     void StartConfirm (MlmeStartConfirmParams params);
 
-    uint64_t RlCallback();
+    void GetModel();
 
-    void GetFVGMode(std::vector<uint32_t> mode);
+    void RecvModel();
 
     
 
@@ -138,6 +143,10 @@ class WsnNwkProtocol : public Object
     MlmeBeaconNotifyIndicationCallback m_MlmeBeaconNotifyIndicationCallback;
     
     McpsDataIndicationCallback m_McpsDataIndicationCallback;
+
+    WsnGetModelCallback m_wsnGetModelCallback;
+
+    EventId m_modelUpdate;
 };  
 
 class WsnNwkProtocolHelper

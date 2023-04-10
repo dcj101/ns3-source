@@ -22,7 +22,7 @@ void Test(Ptr<WsnNwkProtocol> from, Ptr<WsnNwkProtocol> to)
     Simulator::ScheduleWithContext(1,Seconds(0.0),&WsnNwkProtocol::Send,
                       from,from->GetNwkShortAddress(),to->GetNwkShortAddress(),
                       Create<Packet>(11),
-                      NwkHeader::NWK_FRAME_DATA);
+                      NwkHeader::NWK_FRAME_DATA,WsnNwkPayload::WSN_PL_NONE);
     // Simulator::ScheduleWithContext(2,Seconds(1.0),&WsnNwkProtocol::Send,
     //                   to,to->GetNwkShortAddress(),from->GetNwkShortAddress(),
     //                   Create<Packet>(31),

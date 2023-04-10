@@ -27,6 +27,7 @@ public:
         WSN_PL_END_DEVICE_TIMEOUT_REQUEST,
         WSN_PL_END_DEVICE_TIMEOUT_RESPONSE,
         WSN_PL_LINK_POWER_DELTA,
+        WSN_PL_NONE,
     };
 
     enum ManyToOne
@@ -68,6 +69,10 @@ public:
     virtual void Serialize (TagBuffer start) const;
     virtual void Deserialize (TagBuffer start);
     virtual void Print (std::ostream &os) const;
+
+    void SetnwkCommandIdentifier(WsnNwkPayload::NWKCommandIdentifier dtype) {nwkCommandIdentifier = dtype;}
+    uint8_t GetnwkCommandIdentifier(WsnNwkPayload::NWKCommandIdentifier dtype) { return nwkCommandIdentifier; }
+
 private:
 
 

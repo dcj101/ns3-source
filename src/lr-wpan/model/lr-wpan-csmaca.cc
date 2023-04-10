@@ -430,7 +430,7 @@ LrWpanCsmaCa::RlBackoffDelay()
     {
 
       m_randomBackoffPeriodsLeft = (uint64_t)ActionRlBackoff();
-      if(m_randomBackoffPeriodsLeft == -1) 
+      if(m_randomBackoffPeriodsLeft == (uint64_t)-1) 
       {
         RandomBackoffDelay();
         return;

@@ -1,4 +1,4 @@
-#include "wsn-sensor-tag.h"
+#include "wsn-fedlearning-tag.h"
 #include <ns3/integer.h>
 
 namespace ns3 {
@@ -12,10 +12,6 @@ WsnFedTag::GetTypeId (void)
     .SetParent<Tag> ()
     .SetGroupName ("LrWpan")
     .AddConstructor<WsnFedTag> ()
-    .AddAttribute ("WsnFedTag", "WsnFedTag",
-                   IntegerValue (0),
-                   MakeIntegerAccessor (&WsnFedTag::Get),
-                   MakeIntegerChecker<uint8_t> ())
   ;
   return tid;
 }
@@ -31,33 +27,34 @@ WsnFedTag::WsnFedTag (void)
     size = 0;
 }
 
-WsnFedTag::WsnFedTag (std::vector<uint32_t> mode)
-  : m_mode (mode)
+WsnFedTag::WsnFedTag (std::vector<double> mode)
+  : m_model (mode)
 {
-    size = m_mode.size();
+    size = m_model.size();
 }
 
 uint32_t
 WsnFedTag::GetSerializedSize (void) const
 {
-  return sizeof (double);
+  return m_model.size()*sizeof (double);
 }
 
 void
 WsnFedTag::Serialize (TagBuffer i) const
 {
-  for(auto it : m_mode)
+  for(auto it : m_model)
   {
-    i.WriteU32(it);
+    i.WriteDouble(it);
   }
 }
 
 void
 WsnFedTag::Deserialize (TagBuffer i)
 {
-  for(uint32_t i = 0; i < size; ++ i)
+  for(uint32_t j = 0; j < size; ++ j)
   {
-    m_mode.push_back(i);
+    double x = i.ReadDouble ();
+    m_model.push_back(x);
   }
 }
 
@@ -68,15 +65,15 @@ WsnFedTag::Print (std::ostream &os) const
 }
 
 void
-WsnFedTag::Set (std::vector<uint32_t> mode)
+WsnFedTag::Set (std::vector<double> mode)
 {
-  m_mode = mode;
+  m_model = mode;
 }
 
-std::vector<uint32_t>
+std::vector<double>
 WsnFedTag::Get (void) const
 {
-  return m_mode;
+  return m_model;
 }
 
 }
