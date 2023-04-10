@@ -324,6 +324,11 @@ WsnNwkProtocol::DataIndication (McpsDataIndicationParams params, Ptr<Packet> p)
       }
       else if(pl.GetnwkCommandIdentifier() == (uint8_t)WsnNwkPayload::WSN_PL_MODEL_RECV)
       {
+        if(m_nodeType == NODE_TYPE::COOR)
+        {
+          FvGModel(p->Copy());
+          return;
+        }
         if(m_wsnGetModelCallback.IsNull())
         {
           NS_LOG_FUNCTION(this << " i  am not the learning node");
@@ -387,6 +392,7 @@ WsnNwkProtocol::DataIndicationCoordinator (McpsDataIndicationParams params, Ptr<
 void 
 WsnNwkProtocol::StartConfirm (MlmeStartConfirmParams params)
 {
+    NS_LOG_FUNCTION(this);
     if (params.m_status == MLMESTART_SUCCESS)
     {
         NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << "Beacon status SUCESSFUL");
@@ -437,6 +443,7 @@ WsnNwkProtocol::DoDispose (void)
 void 
 WsnNwkProtocol::GetModel(void)
 {
+  NS_LOG_FUNCTION(this);
   if(m_wsnGetModelCallback.IsNull())
   {
     NS_LOG_FUNCTION(this << "m_wsnGetModelCallback is Null");
@@ -448,21 +455,49 @@ WsnNwkProtocol::GetModel(void)
     Simulator::Schedule(Seconds(1.0),&WsnNwkProtocol::GetModel,this);
     return;
   }
+  for(auto it : model)
+  {
+    NS_LOG_UNCOND(it << " ");
+  }
+  NS_LOG_UNCOND("\n");
   Ptr<Packet> packet = Create<Packet>(0);
   WsnFedTag wsnFedTag(model);
   packet->AddPacketTag(wsnFedTag);
   Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::Send,
               this,m_addr,NwkShortAddress((uint16_t)0)
-              ,packet,NwkHeader::NWK_FRAME_DATA,WsnNwkPayload::WSN_PL_NONE);
+              ,packet,NwkHeader::NWK_FRAME_COMMAND,WsnNwkPayload::WSN_PL_MODEL_RECV);
 }
 
 void 
 WsnNwkProtocol::RecvModel(Ptr<Packet> model)
 {
+  NS_LOG_FUNCTION(this);
   WsnFedTag m_model;
   model->RemovePacketTag(m_model);
   m_wsnRecvModelCallback(m_model.Get());
   Simulator::Schedule(Seconds(5.0),&WsnNwkProtocol::GetModel,this);
+}
+
+void 
+WsnNwkProtocol::FvGModel(Ptr<Packet> model)
+{
+  NS_LOG_FUNCTION(this);
+  WsnFedTag m_model;
+  model->RemovePacketTag(m_model);
+  std::vector<double> m = m_model.Get(); 
+  if(!m_modelFvg.size())
+  {
+    m_modelFvg = m; 
+    m_modelFvg.push_back(1);
+  }
+  else
+  {
+    double tt = m_modelFvg[m_modelFvg.size()-1];
+    for(uint32_t i = 0; i < m_modelFvg.size()-1; ++ i)
+    {
+      m_modelFvg[i] = m[i]*(m_modelFvg[i]*tt)/(tt+1);
+    }
+  }
 }
 
 void

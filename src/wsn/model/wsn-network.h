@@ -1,6 +1,5 @@
 #ifndef WSN_NETWORK_H
 #define WSN_NETWORK_H
-#include <vector>
 
 #include "ns3/object.h"
 #include "ns3/object-factory.h"
@@ -100,7 +99,7 @@ class WsnNwkProtocol : public Object
 
     void RecvModel(Ptr<Packet> model);
 
-    
+    void FvGModel(Ptr<Packet> model);
 
     protected:
     
@@ -150,6 +149,8 @@ class WsnNwkProtocol : public Object
     WsnRecvModelCallback m_wsnRecvModelCallback;
 
     WsnGetModelCallback m_wsnGetModelCallback;
+    
+    std::vector<double> m_modelFvg;
 
 };  
 
