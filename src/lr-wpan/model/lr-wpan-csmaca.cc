@@ -285,7 +285,7 @@ LrWpanCsmaCa::ActionRlBackoff()
   NS_LOG_UNCOND("Average Throughput =" << AvgThroughput<< "Kbps");
   NS_LOG_UNCOND("End to End Delay =" << Delay);
   classifier->releaselock();
-  if(!m_backoffRl.IsNull()) return m_backoffRl(((LostPackets*100)/SentPackets),AvgThroughput,Delay.GetSeconds()/SentPackets*10);
+  if(!m_backoffRl.IsNull()) return m_backoffRl(((LostPackets*100)/SentPackets)*5,AvgThroughput,Delay.GetSeconds()/SentPackets*10);
   else return 0;
 }
 

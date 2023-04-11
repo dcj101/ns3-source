@@ -491,7 +491,7 @@ WsnNwkProtocol::RecvModel(Ptr<Packet> model)
   NS_LOG_UNCOND("\n");
 
   m_wsnRecvModelCallback(m_model.Get());
-  // Simulator::Schedule(Seconds(5.0),&WsnNwkProtocol::GetModel,this);
+  Simulator::Schedule(Seconds(15.0),&WsnNwkProtocol::GetModel,this);
 }
 
 void 
@@ -537,6 +537,7 @@ WsnNwkProtocol::FvGModel(Ptr<Packet> model)
       Delay += 0.1;
       NS_LOG_UNCOND (m_addr << " " <<Simulator::Now ().GetSeconds () << " Coor send fvg model --->>>");
     }
+    m_modelFvg.clear();
   }
 }
 
