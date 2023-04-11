@@ -490,7 +490,7 @@ WsnNwkProtocol::RecvModel(Ptr<Packet> model)
   }
   NS_LOG_UNCOND("\n");
 
-  // m_wsnRecvModelCallback(m_model.Get());
+  m_wsnRecvModelCallback(m_model.Get());
   // Simulator::Schedule(Seconds(5.0),&WsnNwkProtocol::GetModel,this);
 }
 
