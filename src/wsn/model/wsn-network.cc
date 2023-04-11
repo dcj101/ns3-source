@@ -462,6 +462,7 @@ WsnNwkProtocol::GetModel(void)
     Simulator::Schedule(Seconds(1.0),&WsnNwkProtocol::GetModel,this);
     return;
   }
+  NS_LOG_FUNCTION(this << "Get model is " << model.size());
   for(auto it : model)
   {
     NS_LOG_UNCOND(it << " ");
@@ -484,6 +485,8 @@ WsnNwkProtocol::RecvModel(Ptr<Packet> model)
   model->RemovePacketTag(m_model);
   std::vector<double> model_;
   model_ = m_model.Get();
+  NS_LOG_FUNCTION(this << " Recv model is " << model_.size());
+  
   for(auto it : model_)
   {
     NS_LOG_UNCOND(it << " ");
@@ -523,6 +526,7 @@ WsnNwkProtocol::FvGModel(Ptr<Packet> model)
   NS_LOG_UNCOND("\n");
   if(m_modelFvg[m_modelFvg.size()-1] > 1)
   {
+    m_modelFvg.pop_back();
     double Delay = 0.1;
     std::vector<NeighborTable::NeighborEntry> ntable = m_ntable.GetNeighborEntries();
     for(auto it : ntable)
