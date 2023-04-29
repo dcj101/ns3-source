@@ -61,7 +61,7 @@ LrWpanCsmaCa::LrWpanCsmaCa ()
   m_macBattLifeExt = false;
   m_macMinBE = 3;
   m_macMaxBE = 5;
-  m_macMaxCSMABackoffs = 4;
+  m_macMaxCSMABackoffs = 6;
   m_aUnitBackoffPeriod = 20; // symbols
   m_random = CreateObject<UniformRandomVariable> ();
   m_BE = m_macMinBE;
@@ -249,11 +249,15 @@ uint32_t
 LrWpanCsmaCa::ActionRlBackoff()
 {
   NS_LOG_FUNCTION(this);
+  static std::map<Mac64Address,uint32_t> lastAvg;
+  static std::map<Mac64Address,double> lasttime;
+  double now = Simulator::Now().GetSeconds();
   uint32_t SentPackets = 0;
 	uint32_t ReceivedPackets = 0;
 	uint32_t LostPackets = 0;
   int j=0;
-  float AvgThroughput = 0;
+  double AvgThroughput = 0;
+  double sum = 0;
   Time Jitter;
   Time Delay;
   Ptr<FlowMonitor> monitor = LrWpanFlowMonitorHelper::Get() ->GetMonitor();
@@ -265,28 +269,46 @@ LrWpanCsmaCa::ActionRlBackoff()
   {
       ns3::LrWpanFlowClassifier::TwoTuple t = classifier->FindFlow (iter->first);
 
-      if(t.sourceAddress != m_mac->GetExtendedAddress()) continue;
+      if(t.sourceAddress != m_mac->GetExtendedAddress() && t.destinationAddress != m_mac->GetExtendedAddress()) continue;
+
+      if(t.sourceAddress == m_mac->GetExtendedAddress()) sum += iter->second.txBytes;
+      else sum += iter->second.rxBytes;
       
-      SentPackets = SentPackets +(iter->second.txPackets);
-      ReceivedPackets = ReceivedPackets + (iter->second.rxPackets);
+      if(t.sourceAddress == m_mac->GetExtendedAddress()) SentPackets = SentPackets +(iter->second.txPackets);
+      else ReceivedPackets = ReceivedPackets + (iter->second.rxPackets);
+
       LostPackets = LostPackets + (iter->second.txPackets-iter->second.rxPackets);
       AvgThroughput = AvgThroughput + (iter->second.rxBytes * 8.0/(iter->second.timeLastRxPacket.GetSeconds()-iter->second.timeFirstTxPacket.GetSeconds())/1024);
       Delay = Delay + (iter->second.delaySum);
-      j = j + 1;
+      Jitter = Jitter + (iter->second.jitterSum);
+      j++;
   }
 
-  AvgThroughput = AvgThroughput/j;  
+  AvgThroughput = AvgThroughput/j;
+
+  if(!lastAvg.count(m_mac->GetExtendedAddress())) lastAvg[m_mac->GetExtendedAddress()] = 0;
+  if(!lasttime.count(m_mac->GetExtendedAddress())) lasttime[m_mac->GetExtendedAddress()] = 0;
+
+  sum = sum - lastAvg[m_mac->GetExtendedAddress()];
+  
+  lastAvg[m_mac->GetExtendedAddress()] += sum;
+  
+  sum = 8.0*sum/(now-lasttime[m_mac->GetExtendedAddress()])/1024;  
+  if(sum > 0.01) lasttime[m_mac->GetExtendedAddress()] = now;
+
   NS_LOG_UNCOND("--------CSMACA simulation----------"<<std::endl);
   NS_LOG_UNCOND("CSMACA sent packets  =" << SentPackets);
   NS_LOG_UNCOND("CSMACA Received Packets =" << ReceivedPackets);
   NS_LOG_UNCOND("CSMACA Lost Packets =" << LostPackets);
-  NS_LOG_UNCOND("Packet Loss ratio =" << ((double)(LostPackets*100)/SentPackets)<< "%");
   NS_LOG_UNCOND("Packet delivery ratio =" << ((double)(ReceivedPackets*100)/SentPackets)<< "%");
   NS_LOG_UNCOND("Average Throughput =" << AvgThroughput<< "Kbps");
   NS_LOG_UNCOND("End to End Delay =" << Delay);
+  NS_LOG_UNCOND("End to End Jitter delay =" << Jitter); 
+  NS_LOG_UNCOND("Total Flod id " << j);
+  NS_LOG_UNCOND("SUM " << sum << "Kbps");
   classifier->releaselock();
-  if(!m_backoffRl.IsNull()) return m_backoffRl(((LostPackets*100)/SentPackets)*5,AvgThroughput,Delay.GetSeconds()/SentPackets*10);
-  else return 0;
+  if(sum > 0.01)  return m_backoffRl(((LostPackets*100)/SentPackets)*5,sum,Delay.GetSeconds()/SentPackets*10);
+  return (uint32_t)-1;
 }
 
 void

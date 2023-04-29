@@ -46,7 +46,7 @@ int main()
   LogComponentEnable ("LrWpanFlowProbe", LOG_LEVEL_ALL);
 
   // 设置入网分配器的分配规则
-  WsnAddressAllocator::Get ()->SetWsnAddressAllocator(5,3,3);
+  WsnAddressAllocator::Get ()->SetWsnAddressAllocator(10,5,5);
 
   LrWpanHelper lrWpanHelper;
 
@@ -56,18 +56,42 @@ int main()
   Ptr<Node> n2 = CreateObject <Node> ();
   Ptr<Node> n3 = CreateObject <Node> ();
   Ptr<Node> n4 = CreateObject <Node> ();
+  Ptr<Node> n5 = CreateObject <Node> ();
+  Ptr<Node> n6 = CreateObject <Node> ();
+  Ptr<Node> n7 = CreateObject <Node> ();
+  Ptr<Node> n8 = CreateObject <Node> ();
+  Ptr<Node> n9 = CreateObject <Node> ();
+  Ptr<Node> n10 = CreateObject <Node> ();
+  Ptr<Node> n11 = CreateObject <Node> ();
+  Ptr<Node> n12 = CreateObject <Node> ();
 
   Ptr<LrWpanNetDevice> dev0 = CreateObject<LrWpanNetDevice> ();
   Ptr<LrWpanNetDevice> dev1 = CreateObject<LrWpanNetDevice> ();
   Ptr<LrWpanNetDevice> dev2 = CreateObject<LrWpanNetDevice> ();
   Ptr<LrWpanNetDevice> dev3 = CreateObject<LrWpanNetDevice> ();
   Ptr<LrWpanNetDevice> dev4 = CreateObject<LrWpanNetDevice> ();
+  Ptr<LrWpanNetDevice> dev5 = CreateObject<LrWpanNetDevice> ();
+  Ptr<LrWpanNetDevice> dev6 = CreateObject<LrWpanNetDevice> ();
+  Ptr<LrWpanNetDevice> dev7 = CreateObject<LrWpanNetDevice> ();
+  Ptr<LrWpanNetDevice> dev8 = CreateObject<LrWpanNetDevice> ();
+  Ptr<LrWpanNetDevice> dev9 = CreateObject<LrWpanNetDevice> ();
+  Ptr<LrWpanNetDevice> dev10 = CreateObject<LrWpanNetDevice> ();
+  Ptr<LrWpanNetDevice> dev11 = CreateObject<LrWpanNetDevice> ();
+  Ptr<LrWpanNetDevice> dev12 = CreateObject<LrWpanNetDevice> ();
 
   string mac480 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
   string mac481 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
   string mac482 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
   string mac483 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
   string mac484 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
+  string mac485 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
+  string mac486 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
+  string mac487 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
+  string mac488 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
+  string mac489 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
+  string mac4810 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
+  string mac4811 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
+  string mac4812 = WsnAddressAllocator::Get ()->AllocateRandMac48Address();
 
 
   string mac640 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac480);
@@ -79,6 +103,14 @@ int main()
   string mac643 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac483);
   std::cout << mac643 << "\n";
   string mac644 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac484);
+  string mac645 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac485);
+  string mac646 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac486);
+  string mac647 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac487);
+  string mac648 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac488);
+  string mac649 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac489);
+  string mac6410 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac4810);
+  string mac6411 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac4811);
+  string mac6412 = WsnAddressAllocator::Get ()->AnalysisMac48AddresstoEUI64(mac4812);
   std::cout << mac644 << "\n";
 
 
@@ -87,6 +119,15 @@ int main()
   dev2->GetMac()->SetExtendedAddress (Mac64Address (mac642.c_str()));
   dev3->GetMac()->SetExtendedAddress (Mac64Address (mac643.c_str()));
   dev4->GetMac()->SetExtendedAddress (Mac64Address (mac644.c_str()));
+  dev5->GetMac()->SetExtendedAddress (Mac64Address (mac645.c_str()));
+  dev6->GetMac()->SetExtendedAddress (Mac64Address (mac646.c_str()));
+  dev7->GetMac()->SetExtendedAddress (Mac64Address (mac647.c_str()));
+  dev8->GetMac()->SetExtendedAddress (Mac64Address (mac648.c_str()));
+  dev9->GetMac()->SetExtendedAddress (Mac64Address (mac649.c_str()));
+  dev10->GetMac()->SetExtendedAddress (Mac64Address (mac6410.c_str()));
+  dev11->GetMac()->SetExtendedAddress (Mac64Address (mac6411.c_str()));
+  dev12->GetMac()->SetExtendedAddress (Mac64Address (mac6412.c_str()));
+
 
   Ptr<SingleModelSpectrumChannel> channel = CreateObject<SingleModelSpectrumChannel> ();
   // 距离传输模型
@@ -102,7 +143,14 @@ int main()
   dev2->SetChannel (channel);
   dev3->SetChannel (channel);
   dev4->SetChannel (channel);
-
+  dev5->SetChannel(channel);
+  dev6->SetChannel(channel);
+  dev7->SetChannel(channel);
+  dev8->SetChannel(channel);
+  dev9->SetChannel(channel);
+  dev10->SetChannel(channel);
+  dev11->SetChannel(channel);
+  dev12->SetChannel(channel);
   WsnNwkProtocolHelper helper;
   // Ptr<WsnNwkProtocol> nwk0 = CreateObject<WsnNwkProtocol>(NODE_TYPE::COOR);
   helper.CreateAndAggregateObjectFromTypeId(n0,"ns3::WsnNwkProtocol");
@@ -112,7 +160,7 @@ int main()
   // Ptr<WsnNwkProtocol> nwk1 = CreateObject<WsnNwkProtocol>(NODE_TYPE::EDGE);
   helper.CreateAndAggregateObjectFromTypeId(n1,"ns3::WsnNwkProtocol");
   Ptr<WsnNwkProtocol> nwk1 = n1->GetObject<WsnNwkProtocol>();
-  nwk1->SetNodeType(NODE_TYPE::EDGE);
+  nwk1->SetNodeType(NODE_TYPE::ROUTE);
 
   // Ptr<WsnNwkProtocol> nwk2 = CreateObject<WsnNwkProtocol>(NODE_TYPE::EDGE);
   helper.CreateAndAggregateObjectFromTypeId(n2,"ns3::WsnNwkProtocol");
@@ -130,45 +178,101 @@ int main()
   Ptr<WsnNwkProtocol> nwk4 = n4->GetObject<WsnNwkProtocol>();
   nwk4->SetNodeType(NODE_TYPE::EDGE);
 
+  helper.CreateAndAggregateObjectFromTypeId(n5,"ns3::WsnNwkProtocol");
+  Ptr<WsnNwkProtocol> nwk5 = n5->GetObject<WsnNwkProtocol>();
+  nwk5->SetNodeType(NODE_TYPE::EDGE);
+
+  helper.CreateAndAggregateObjectFromTypeId(n6,"ns3::WsnNwkProtocol");
+  Ptr<WsnNwkProtocol> nwk6 = n6->GetObject<WsnNwkProtocol>();
+  nwk6->SetNodeType(NODE_TYPE::EDGE);
+
+  helper.CreateAndAggregateObjectFromTypeId(n7,"ns3::WsnNwkProtocol");
+  Ptr<WsnNwkProtocol> nwk7 = n7->GetObject<WsnNwkProtocol>();
+  nwk7->SetNodeType(NODE_TYPE::EDGE);
+
+  helper.CreateAndAggregateObjectFromTypeId(n8,"ns3::WsnNwkProtocol");
+  Ptr<WsnNwkProtocol> nwk8 = n8->GetObject<WsnNwkProtocol>();
+  nwk8->SetNodeType(NODE_TYPE::EDGE);
+
+  helper.CreateAndAggregateObjectFromTypeId(n9,"ns3::WsnNwkProtocol");
+  Ptr<WsnNwkProtocol> nwk9 = n9->GetObject<WsnNwkProtocol>();
+  nwk9->SetNodeType(NODE_TYPE::EDGE);
+
+  helper.CreateAndAggregateObjectFromTypeId(n10,"ns3::WsnNwkProtocol");
+  Ptr<WsnNwkProtocol> nwk10 = n10->GetObject<WsnNwkProtocol>();
+  nwk10->SetNodeType(NODE_TYPE::EDGE);
+
+  helper.CreateAndAggregateObjectFromTypeId(n11,"ns3::WsnNwkProtocol");
+  Ptr<WsnNwkProtocol> nwk11 = n11->GetObject<WsnNwkProtocol>();
+  nwk11->SetNodeType(NODE_TYPE::EDGE);
+
+  helper.CreateAndAggregateObjectFromTypeId(n12,"ns3::WsnNwkProtocol");
+  Ptr<WsnNwkProtocol> nwk12 = n12->GetObject<WsnNwkProtocol>();
+  nwk12->SetNodeType(NODE_TYPE::EDGE);
+
 
   nwk0->Assign(dev0);
   nwk1->Assign(dev1);
   nwk2->Assign(dev2);
   nwk3->Assign(dev3);
   nwk4->Assign(dev4);
-
+  nwk5->Assign(dev5);
+  nwk6->Assign(dev6);
+  nwk7->Assign(dev7);
+  nwk8->Assign(dev8);
+  nwk9->Assign(dev9);
+  nwk10->Assign(dev10);
+  nwk11->Assign(dev11);
+  nwk12->Assign(dev12);
+  
   nwk0->Install(n0);
   nwk1->Install(n1);
   nwk2->Install(n2);
   nwk3->Install(n3);
   nwk4->Install(n4);
+  nwk5->Install(n5);
+  nwk6->Install(n6);
+  nwk7->Install(n7);
+  nwk8->Install(n8);
+  nwk9->Install(n9);
+  nwk10->Install(n10);
+  nwk11->Install(n11);
+  nwk12->Install(n12);
 
-  n0->AddDevice (dev0);
-  n1->AddDevice (dev1);
-  n2->AddDevice (dev2);
-  n3->AddDevice (dev3);
-  n4->AddDevice (dev4);
+  n0->AddDevice(dev0);
+  n1->AddDevice(dev1);
+  n2->AddDevice(dev2);
+  n3->AddDevice(dev3);
+  n4->AddDevice(dev4);
+  n5->AddDevice(dev5);
+  n6->AddDevice(dev6);
+  n7->AddDevice(dev7);
+  n8->AddDevice(dev8);
+  n9->AddDevice(dev9);
+  n10->AddDevice(dev10);
+  n11->AddDevice(dev11);
+  n12->AddDevice(dev12);
 
 
-  Ptr<ConstantPositionMobilityModel> sender0Mobility = CreateObject<ConstantPositionMobilityModel> ();
-  sender0Mobility->SetPosition (Vector (0,0,0));
-  dev0->GetPhy ()->SetMobility (sender0Mobility);
+  // Ptr<ConstantPositionMobilityModel> sender0Mobility = CreateObject<ConstantPositionMobilityModel> ();
+  // sender0Mobility->SetPosition (Vector (0,0,0));
+  // dev0->GetPhy ()->SetMobility (sender0Mobility);
 
-  Ptr<ConstantPositionMobilityModel> sender1Mobility = CreateObject<ConstantPositionMobilityModel> ();
-  sender1Mobility->SetPosition (Vector (0,30,0)); //10 m distance
-  dev1->GetPhy ()->SetMobility (sender1Mobility);
+  // Ptr<ConstantPositionMobilityModel> sender1Mobility = CreateObject<ConstantPositionMobilityModel> ();
+  // sender1Mobility->SetPosition (Vector (0,30,0)); //10 m distance
+  // dev1->GetPhy ()->SetMobility (sender1Mobility);
 
-  Ptr<ConstantPositionMobilityModel> sender2Mobility = CreateObject<ConstantPositionMobilityModel> ();
-  sender2Mobility->SetPosition (Vector (30,0,0));
-  dev2->GetPhy ()->SetMobility (sender2Mobility);
+  // Ptr<ConstantPositionMobilityModel> sender2Mobility = CreateObject<ConstantPositionMobilityModel> ();
+  // sender2Mobility->SetPosition (Vector (30,0,0));
+  // dev2->GetPhy ()->SetMobility (sender2Mobility);
 
-  Ptr<ConstantPositionMobilityModel> sender3Mobility = CreateObject<ConstantPositionMobilityModel> ();
-  sender3Mobility->SetPosition (Vector (0,0,30)); //10 m distance
-  dev3->GetPhy ()->SetMobility (sender3Mobility);
+  // Ptr<ConstantPositionMobilityModel> sender3Mobility = CreateObject<ConstantPositionMobilityModel> ();
+  // sender3Mobility->SetPosition (Vector (0,0,30)); //10 m distance
+  // dev3->GetPhy ()->SetMobility (sender3Mobility);
 
-  Ptr<ConstantPositionMobilityModel> sender4Mobility = CreateObject<ConstantPositionMobilityModel> ();
-  sender4Mobility->SetPosition (Vector (0,30,30)); //10 m distance
-  dev4->GetPhy ()->SetMobility (sender4Mobility);
+  // Ptr<ConstantPositionMobilityModel> sender4Mobility = CreateObject<ConstantPositionMobilityModel> ();
+  // sender4Mobility->SetPosition (Vector (0,30,30)); //10 m distance
+  // dev4->GetPhy ()->SetMobility (sender4Mobility);
 
 
   Ptr<FlowMonitor> monitor = LrWpanFlowMonitorHelper::Get ()->Install(dev0);
@@ -176,6 +280,15 @@ int main()
   LrWpanFlowMonitorHelper::Get ()->Install(dev2);
   LrWpanFlowMonitorHelper::Get ()->Install(dev3);
   LrWpanFlowMonitorHelper::Get ()->Install(dev4);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev5);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev6);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev7);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev8);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev9);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev10);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev11);
+  LrWpanFlowMonitorHelper::Get ()->Install(dev12);
+
 
   Simulator::Schedule(Seconds(0.0),&WsnNwkProtocol::JoinRequest,
                       nwk0,nwk1);
@@ -193,9 +306,33 @@ int main()
   Simulator::Schedule(Seconds(60.0),&WsnNwkProtocol::JoinRequest,
                       nwk4,nwk3);        
 
-  double sendtime = 100;
+  Simulator::Schedule(Seconds(65.0),&WsnNwkProtocol::JoinRequest,
+                      nwk5,nwk3);  
 
-  for(int i = 0; i < 2000; i+=6)
+  Simulator::Schedule(Seconds(70.0),&WsnNwkProtocol::JoinRequest,
+                      nwk6,nwk3); 
+
+  Simulator::Schedule(Seconds(75.0),&WsnNwkProtocol::JoinRequest,
+                      nwk7,nwk3); 
+                
+  Simulator::Schedule(Seconds(80.0),&WsnNwkProtocol::JoinRequest,
+                      nwk8,nwk1); 
+
+  Simulator::Schedule(Seconds(85.0),&WsnNwkProtocol::JoinRequest,
+                      nwk9,nwk1);
+
+  Simulator::Schedule(Seconds(90.0),&WsnNwkProtocol::JoinRequest,
+                      nwk10,nwk1);
+
+  Simulator::Schedule(Seconds(95.0),&WsnNwkProtocol::JoinRequest,
+                      nwk11,nwk1);
+
+  Simulator::Schedule(Seconds(100.0),&WsnNwkProtocol::JoinRequest,
+                      nwk12,nwk1);
+
+  double sendtime = 150;
+
+  for(int i = 0; i < 1500; i+=6)
   { 
     Ptr<UniformRandomVariable> uniformRandomVariable = CreateObject<UniformRandomVariable> ();;
     double delay = uniformRandomVariable->GetValue (0, 0.1);
@@ -204,14 +341,18 @@ int main()
     Simulator::Schedule(Seconds(sendtime+(i+2)*delay),&Test,nwk4,nwk1);
     Simulator::Schedule(Seconds(sendtime+(i+3)*delay),&Test,nwk1,nwk4);
     Simulator::Schedule(Seconds(sendtime+(i+4)*delay),&Test,nwk2,nwk4);    
-    Simulator::Schedule(Seconds(sendtime+(i+5)*delay),&Test,nwk4,nwk2);    
+    Simulator::Schedule(Seconds(sendtime+(i+5)*delay),&Test,nwk5,nwk6);    
+    Simulator::Schedule(Seconds(sendtime+(i+5)*delay),&Test,nwk5,nwk8);    
+    Simulator::Schedule(Seconds(sendtime+(i+5)*delay),&Test,nwk4,nwk10);    
+    Simulator::Schedule(Seconds(sendtime+(i+5)*delay),&Test,nwk7,nwk12);    
+    Simulator::Schedule(Seconds(sendtime+(i+5)*delay),&Test,nwk6,nwk11);    
   }
 
 
 
   bool TraceMetric = 1;
 
-  Simulator::Stop(Seconds(2000));
+  Simulator::Stop(Seconds(300));
   Simulator::Run ();
 
   uint32_t SentPackets = 0;
